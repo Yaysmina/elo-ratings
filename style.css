@@ -1,0 +1,294 @@
+/* --- Global Styles & Variables --- */
+:root {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-card: #0f3460;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a8a8a8;
+    --accent-primary: #e94560;
+    --accent-secondary: #53bf9d;
+    --color-gain: #4caf50;
+    --color-loss: #f44336;
+    --color-draw: #9e9e9e;
+    --font-family: 'Inter', sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    margin: 0;
+    overflow-x: hidden;
+}
+
+.app-container {
+    min-height: 100vh;
+}
+
+.logo {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    margin: 0 0 1rem 0;
+    padding-left: 1.5rem; /* Align with table content */
+}
+
+.card {
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.card h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    border-bottom: 1px solid var(--bg-secondary);
+    padding-bottom: 0.75rem;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+input[type="text"], select {
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0.75rem;
+    border: 1px solid #2a3b5e;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: var(--font-family);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type="text"]:focus, select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.3);
+}
+
+select {
+    color-scheme: dark;
+}
+
+button {
+    background-color: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+button:hover {
+    background-color: #d83c54;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+.btn-secondary {
+    background-color: #4a5a7e;
+}
+.btn-secondary:hover {
+    background-color: #3e4c6a;
+}
+.btn-danger {
+    background-color: #8c2a3a;
+}
+.btn-danger:hover {
+    background-color: #7a2432;
+}
+
+/* --- Main Content --- */
+.main-content {
+    padding: 2rem;
+    overflow-y: auto;
+    max-width: 1200px; /* Optional: constrain width for better readability */
+    margin: 0 auto; /* Optional: center the content */
+}
+
+.tabs {
+    display: flex;
+    gap: 1rem;
+    border-bottom: 1px solid #2a3b5e;
+    margin-bottom: 2rem;
+}
+
+.tab-link {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.tab-link:hover {
+    color: var(--text-primary);
+}
+
+.tab-link::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; /* Align with parent's border */
+    left: 0;
+    right: 0;
+    height: 3px;
+    background-color: var(--accent-primary);
+    transform: scaleX(0);
+    transition: transform 0.3s ease-in-out;
+}
+
+.tab-link.active {
+    color: var(--accent-primary);
+    font-weight: 700;
+}
+
+.tab-link.active::after {
+    transform: scaleX(1);
+}
+
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Player Rankings Table --- */
+.player-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.player-table th, .player-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid #2a3b5e;
+}
+
+.player-table th {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.player-table tbody tr:hover {
+    background-color: var(--bg-secondary);
+}
+
+/* --- Match History List --- */
+.match-history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.match-item {
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr min-content 1fr;
+    align-items: center;
+    gap: 1rem;
+}
+
+.match-player {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.player-name {
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.elo-details {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-family: monospace;
+}
+
+.elo-change {
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #fff;
+}
+
+.match-h2h-summary {
+    grid-column: 1 / -1; /* Spans across all grid columns of the parent match-item */
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-top: 0.75rem; /* Spacing from the match details above */
+    padding-top: 0.75rem;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1); /* Subtle separator line */
+    font-weight: 500;
+}
+
+.elo-gain { background-color: var(--color-gain); }
+.elo-loss { background-color: var(--color-loss); }
+.elo-draw { background-color: var(--color-draw); }
+
+.match-vs {
+    text-align: center;
+    font-size: 1.5rem;
+    color: var(--accent-primary);
+    font-weight: 700;
+}
+
+/* --- H2H Table Specific Styles --- */
+.h2h-table th:nth-child(2) { /* Targets the 'SCORE' header */
+    text-align: center;
+}
+
+.h2h-table th:nth-child(3) { /* Targets the 'PLAYER 2' header */
+    text-align: right;
+}
+
+.h2h-table .score-cell {
+    font-weight: 700;
+    font-size: 1.2rem;
+    text-align: center;
+    color: var(--accent-primary);
+    font-family: monospace;
+}
+
+.h2h-table .player2-name-cell {
+    text-align: right;
+}
