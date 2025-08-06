@@ -310,18 +310,35 @@ button:active {
         padding-left: 0;
     }
 
-    /* --- Responsive Tabs --- */
+    /* --- Responsive Tabs (Wrap to 2 rows) --- */
     .tabs {
         flex-wrap: wrap;
-        justify-content: flex-start; /* Aligns tabs to the left when they wrap */
+        justify-content: center; /* Center the tabs for a cleaner look */
+    }
+    .tab-link {
+        flex-grow: 1; /* Allow tabs to grow and fill space */
+        text-align: center;
     }
 
-    /* --- Responsive Tables (Rankings & H2H) --- */
-    .player-table {
+
+    /* --- Rankings Table (Compact single-row list) --- */
+    #rankings .player-table th, 
+    #rankings .player-table td {
+        padding: 0.8rem 0.5rem;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+    /* Hide the "Rank" column on mobile */
+    .rankings-col-rank {
+        display: none;
+    }
+
+
+    /* --- Head-to-Head Table (Stacked list view) --- */
+    .h2h-table {
         border: 0;
     }
-    .player-table thead {
-        /* Hide table headers, they're displayed with ::before */
+    .h2h-table thead {
         border: none;
         clip: rect(0 0 0 0);
         height: 1px;
@@ -331,24 +348,24 @@ button:active {
         position: absolute;
         width: 1px;
     }
-    .player-table tr {
+    .h2h-table tr {
         display: block;
         margin-bottom: 1rem;
         border: 1px solid var(--bg-secondary);
         border-radius: 8px;
         padding: 0.5rem 1rem;
     }
-    .player-table td {
+    .h2h-table td {
         display: block;
         text-align: right;
         font-size: 1rem;
         border-bottom: 1px dashed var(--bg-secondary);
         padding: 0.8rem 0;
     }
-    .player-table td:last-child {
+    .h2h-table td:last-child {
         border-bottom: 0;
     }
-    .player-table td::before {
+    .h2h-table td::before {
         content: attr(data-label);
         float: left;
         font-weight: bold;
@@ -356,28 +373,44 @@ button:active {
         color: var(--text-secondary);
         font-size: 0.8rem;
     }
-
-    /* Special case for H2H score cell alignment */
-    .player-table td.score-cell::before {
-        line-height: 1.5; /* Vertically align label with score */
+    .h2h-table td.score-cell::before {
+        line-height: 1.5;
     }
-    
-    /* --- Match History Mobile Layout --- */
+
+
+    /* --- Match History (Symmetrical stacked view) --- */
     .match-item {
         display: flex;
         flex-direction: column;
+        align-items: center;
         gap: 0.75rem;
     }
-    .match-vs {
-        order: 2; /* Put VS in the middle */
+    .match-item .match-player {
+        display: contents; /* Makes children of .match-player direct children of .match-item */
     }
-    .match-item .match-player:first-of-type {
-        order: 1;
+    .match-item .player-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        order: 1; /* Default order */
     }
-    .match-item .match-player:last-of-type {
-        order: 3;
+    .match-item .match-player:first-of-type .player-info {
+        order: 1; /* Player 1 appears first */
+    }
+    .match-item .match-vs {
+        order: 2; /* "VS" appears second */
+    }
+    .match-item .match-player:last-of-type .player-info {
+        order: 3; /* Player 2 appears third */
     }
     .match-h2h-summary {
-        order: 4;
+        order: 4; /* H2H summary appears last */
+    }
+
+    .match-item .player-info[style*="text-align: right"] {
+        text-align: center !important; /* Override inline style from JS */
+    }
+    .player-info .elo-details {
+        align-items: center; /* Center the stacked elo numbers */
     }
 }

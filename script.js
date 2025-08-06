@@ -54,11 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sortedPlayers.forEach((player, index) => {
             const row = document.createElement('tr');
+            // Add classes to each cell for mobile styling
             row.innerHTML = `
-                <td data-label="Rank">${index + 1}</td>
-                <td data-label="Player">${player.name}</td>
-                <td data-label="Rating">${Math.round(player.rating)}</td>
-                <td data-label="Matches">${player.matchesPlayed}</td>
+                <td class="rankings-col-rank">${index + 1}</td>
+                <td class="rankings-col-player">${player.name}</td>
+                <td class="rankings-col-rating">${Math.round(player.rating)}</td>
+                <td class="rankings-col-matches">${player.matchesPlayed}</td>
             `;
             playerListBody.appendChild(row);
         });
