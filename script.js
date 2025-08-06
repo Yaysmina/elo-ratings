@@ -87,18 +87,18 @@ function renderMatchHistory() {
                 <div class="player-info">
                     <div class="player-name">${p1.name}</div>
                     <div class="elo-details">
-                        <span>${Math.round(p1.oldRating)} -> ${Math.round(p1.newRating)}</span>
-                        <span class="elo-change elo-${p1Color}">${p1Sign}${Math.round(p1.change)}</span>
+                        <div>${Math.round(p1.oldRating)} -> <span class="elo-change elo-${p1Color}">${p1Sign}${Math.round(p1.change)}</span></div>
+                        <div>${Math.round(p1.newRating)}</div>
                     </div>
                 </div>
             </div>
-            <div class="match-vs">vs</div>
+            <div class="match-vs">VS</div>
             <div class="match-player" style="justify-content: flex-end;">
                  <div class="player-info" style="text-align: right;">
                     <div class="player-name">${p2.name}</div>
                     <div class="elo-details">
-                        <span>${Math.round(p2.oldRating)} -> ${Math.round(p2.newRating)}</span>
-                        <span class="elo-change elo-${p2Color}">${p2Sign}${Math.round(p2.change)}</span>
+                        <div>${Math.round(p2.oldRating)} -> <span class="elo-change elo-${p2Color}">${p2Sign}${Math.round(p2.change)}</span></div>
+                        <div>${Math.round(p2.newRating)}</div>
                     </div>
                 </div>
             </div>
