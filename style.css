@@ -206,6 +206,50 @@ button:active {
 }
 
 /* --- Match History List --- */
+.match-item {
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.match-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.player-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    flex-basis: 40%; /* Each player takes up 40% of the space */
+    transition: opacity 0.3s ease;
+}
+
+.player-container .player-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+    text-align: center;
+}
+
+.elo-breakdown {
+    font-family: monospace;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.match-separator {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent-primary);
+    flex-shrink: 0;
+}
+
 .match-history-list {
     list-style: none;
     padding: 0;
@@ -213,47 +257,6 @@ button:active {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-}
-
-.match-item {
-    background-color: var(--bg-card);
-    border-radius: 12px;
-    padding: 1.5rem;
-    display: grid;
-    grid-template-columns: 1fr min-content 1fr;
-    align-items: center;
-    gap: 1rem;
-}
-
-.match-player {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.player-name {
-    font-size: 1.2rem;
-    font-weight: 700;
-}
-
-.elo-details {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    font-family: monospace;
-    line-height: 1.4;
-    font-size: 0.9rem;
-}
-
-.player-info[style*="text-align: right"] .elo-details {
-    align-items: flex-end;
-}
-
-.elo-change {
-    font-weight: 700;
-    padding: 2px 6px;
-    border-radius: 4px;
-    color: #fff;
 }
 
 .match-h2h-summary {
@@ -271,11 +274,11 @@ button:active {
 .elo-loss { background-color: var(--color-loss); }
 .elo-draw { background-color: var(--color-draw); }
 
-.match-vs {
-    text-align: center;
-    font-size: 1.5rem;
-    color: var(--accent-primary);
-    font-weight: 700;
+.elo-change {
+font-weight: 700;
+padding: 2px 6px;
+border-radius: 4px;
+color: #fff;
 }
 
 /* --- H2H Table Specific Styles --- */
@@ -378,39 +381,33 @@ button:active {
     }
 
 
-    /* --- Match History (Symmetrical stacked view) --- */
-    .match-item {
-        display: flex;
+    /* --- Match History (New Responsive View) --- */
+    .match-body {
         flex-direction: column;
-        align-items: center;
-        gap: 0.75rem;
+        gap: 1rem;
     }
-    .match-item .match-player {
-        display: contents; /* Makes children of .match-player direct children of .match-item */
+    .match-separator {
+        margin: 0.5rem 0;
     }
-    .match-item .player-info {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        order: 1; /* Default order */
-    }
-    .match-item .match-player:first-of-type .player-info {
-        order: 1; /* Player 1 appears first */
-    }
-    .match-item .match-vs {
-        order: 2; /* "VS" appears second */
-    }
-    .match-item .match-player:last-of-type .player-info {
-        order: 3; /* Player 2 appears third */
-    }
-    .match-h2h-summary {
-        order: 4; /* H2H summary appears last */
+    .player-container {
+        width: 100%;
     }
 
-    .match-item .player-info[style*="text-align: right"] {
-        text-align: center !important; /* Override inline style from JS */
+    /* Reset desktop-specific alignments for the mobile view */
+    .match-item .match-player {
+        justify-content: center !important;
     }
-    .player-info .elo-details {
-        align-items: center; /* Center the stacked elo numbers */
+    .match-item .player-info {
+        text-align: center !important;
+    }
+
+    /* Style the player name and elo details for the mobile card */
+    .match-item .player-name {
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+    }
+    .match-item .elo-details {
+        align-items: center;
+        font-size: 1.1rem;
     }
 }

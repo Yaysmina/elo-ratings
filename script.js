@@ -76,6 +76,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const p1 = match.player1;
             const p2 = match.player2;
 
+            // Determine winner/loser status for CSS styling
+            let p1Status = 'draw', p2Status = 'draw';
+            if (match.winner !== 'draw') {
+                if (match.winner === p1.name) {
+                    p1Status = 'winner';
+                    p2Status = 'loser';
+                } else {
+                    p1Status = 'loser';
+                    p2Status = 'winner';
+                }
+            }
+
+            // Determine color and sign for the Elo change pill
             const p1Color = p1.change > 0 ? 'gain' : p1.change < 0 ? 'loss' : 'draw';
             const p2Color = p2.change > 0 ? 'gain' : p2.change < 0 ? 'loss' : 'draw';
             const p1Sign = p1.change > 0 ? '+' : '';
@@ -83,30 +96,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const listItem = document.createElement('li');
             listItem.className = 'match-item';
+            
+            // New, clean, and responsive HTML structure
             listItem.innerHTML = `
-                <div class="match-player">
-                    <div class="player-info">
-                        <div class="player-name">${p1.name}</div>
-                        <div class="elo-details">
-                            <div>${Math.round(p1.oldRating)} -> <span class="elo-change elo-${p1Color}">${p1Sign}${Math.round(p1.change)}</span></div>
-                            <div>${Math.round(p1.newRating)}</div>
-                        </div>
+                <div class="match-body">
+                    <div class="player-container ${p1Status}">
+                        <h3 class="player-name">${p1.name}</h3>
+                        <div class="elo-change elo-${p1Color}">${p1Sign}${Math.round(p1.change)}</div>
+                        <div class="elo-breakdown">${Math.round(p1.oldRating)} &rarr; ${Math.round(p1.newRating)}</div>
                     </div>
-                </div>
-                <div class="match-vs">VS</div>
-                <div class="match-player" style="justify-content: flex-end;">
-                    <div class="player-info" style="text-align: right;">
-                        <div class="player-name">${p2.name}</div>
-                        <div class="elo-details">
-                            <div><span class="elo-change elo-${p2Color}">${p2Sign}${Math.round(p2.change)}</span> <- ${Math.round(p2.oldRating)}</div>
-                            <div>${Math.round(p2.newRating)}</div>
-                        </div>
+
+                    <div class="match-separator">VS</div>
+
+                    <div class="player-container ${p2Status}">
+                        <h3 class="player-name">${p2.name}</h3>
+                        <div class="elo-change elo-${p2Color}">${p2Sign}${Math.round(p2.change)}</div>
+                        <div class="elo-breakdown">${Math.round(p2.oldRating)} &rarr; ${Math.round(p2.newRating)}</div>
                     </div>
                 </div>
                 ${match.h2hRecord ? `
                     <div class="match-h2h-summary">
                         H2H: ${match.h2hRecord[p1.name]} - ${match.h2hRecord[p2.name]}
-                        ${match.h2hRecord.draws > 0 ? ` (${match.h2hRecord.draws} Draws)` : ''}
+                        ${match.h2hRecord.draws > 0 ? `(${match.h2hRecord.draws} Draws)` : ''}
                     </div>
                 ` : ''}
             `;
