@@ -55,63 +55,63 @@ document.addEventListener('DOMContentLoaded', () => {
         sortedPlayers.forEach((player, index) => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${index + 1}</td>
-                <td>${player.name}</td>
-                <td>${Math.round(player.rating)}</td>
-                <td>${player.matchesPlayed}</td>
+                <td data-label="Rank">${index + 1}</td>
+                <td data-label="Player">${player.name}</td>
+                <td data-label="Rating">${Math.round(player.rating)}</td>
+                <td data-label="Matches">${player.matchesPlayed}</td>
             `;
             playerListBody.appendChild(row);
         });
     }
 
-function renderMatchHistory() {
-    matchHistoryList.innerHTML = '';
-    if (matches.length === 0) {
-        matchHistoryList.innerHTML = '<li class="card" style="text-align:center;">No matches played yet.</li>';
-        return;
+    function renderMatchHistory() {
+        matchHistoryList.innerHTML = '';
+        if (matches.length === 0) {
+            matchHistoryList.innerHTML = '<li class="card" style="text-align:center;">No matches played yet.</li>';
+            return;
+        }
+
+        [...matches].reverse().forEach(match => {
+            const p1 = match.player1;
+            const p2 = match.player2;
+
+            const p1Color = p1.change > 0 ? 'gain' : p1.change < 0 ? 'loss' : 'draw';
+            const p2Color = p2.change > 0 ? 'gain' : p2.change < 0 ? 'loss' : 'draw';
+            const p1Sign = p1.change > 0 ? '+' : '';
+            const p2Sign = p2.change > 0 ? '+' : '';
+
+            const listItem = document.createElement('li');
+            listItem.className = 'match-item';
+            listItem.innerHTML = `
+                <div class="match-player">
+                    <div class="player-info">
+                        <div class="player-name">${p1.name}</div>
+                        <div class="elo-details">
+                            <div>${Math.round(p1.oldRating)} -> <span class="elo-change elo-${p1Color}">${p1Sign}${Math.round(p1.change)}</span></div>
+                            <div>${Math.round(p1.newRating)}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="match-vs">VS</div>
+                <div class="match-player" style="justify-content: flex-end;">
+                    <div class="player-info" style="text-align: right;">
+                        <div class="player-name">${p2.name}</div>
+                        <div class="elo-details">
+                            <div><span class="elo-change elo-${p2Color}">${p2Sign}${Math.round(p2.change)}</span> <- ${Math.round(p2.oldRating)}</div>
+                            <div>${Math.round(p2.newRating)}</div>
+                        </div>
+                    </div>
+                </div>
+                ${match.h2hRecord ? `
+                    <div class="match-h2h-summary">
+                        H2H: ${match.h2hRecord[p1.name]} - ${match.h2hRecord[p2.name]}
+                        ${match.h2hRecord.draws > 0 ? ` (${match.h2hRecord.draws} Draws)` : ''}
+                    </div>
+                ` : ''}
+            `;
+            matchHistoryList.appendChild(listItem);
+        });
     }
-
-    [...matches].reverse().forEach(match => {
-        const p1 = match.player1;
-        const p2 = match.player2;
-
-        const p1Color = p1.change > 0 ? 'gain' : p1.change < 0 ? 'loss' : 'draw';
-        const p2Color = p2.change > 0 ? 'gain' : p2.change < 0 ? 'loss' : 'draw';
-        const p1Sign = p1.change > 0 ? '+' : '';
-        const p2Sign = p2.change > 0 ? '+' : '';
-
-        const listItem = document.createElement('li');
-        listItem.className = 'match-item';
-        listItem.innerHTML = `
-            <div class="match-player">
-                <div class="player-info">
-                    <div class="player-name">${p1.name}</div>
-                    <div class="elo-details">
-                        <div>${Math.round(p1.oldRating)} -> <span class="elo-change elo-${p1Color}">${p1Sign}${Math.round(p1.change)}</span></div>
-                        <div>${Math.round(p1.newRating)}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="match-vs">VS</div>
-            <div class="match-player" style="justify-content: flex-end;">
-                 <div class="player-info" style="text-align: right;">
-                    <div class="player-name">${p2.name}</div>
-                    <div class="elo-details">
-                        <div>${Math.round(p2.oldRating)} -> <span class="elo-change elo-${p2Color}">${p2Sign}${Math.round(p2.change)}</span></div>
-                        <div>${Math.round(p2.newRating)}</div>
-                    </div>
-                </div>
-            </div>
-            ${match.h2hRecord ? `
-                <div class="match-h2h-summary">
-                    H2H: ${match.h2hRecord[p1.name]} - ${match.h2hRecord[p2.name]}
-                    ${match.h2hRecord.draws > 0 ? ` (${match.h2hRecord.draws} Draws)` : ''}
-                </div>
-            ` : ''}
-        `;
-        matchHistoryList.appendChild(listItem);
-    });
-}
 
     function renderH2HStats() {
         h2hStatsBody.innerHTML = '';
@@ -153,9 +153,9 @@ function renderMatchHistory() {
         allStats.forEach(stat => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td>${stat.player1.name}</td>
-                <td class="score-cell">${stat.player1.wins} - ${stat.player2.wins}</td>
-                <td class="player2-name-cell">${stat.player2.name}</td>
+                <td data-label="Player 1">${stat.player1.name}</td>
+                <td data-label="Score" class="score-cell">${stat.player1.wins} - ${stat.player2.wins}</td>
+                <td data-label="Player 2" class="player2-name-cell">${stat.player2.name}</td>
             `;
             h2hStatsBody.appendChild(row);
         });

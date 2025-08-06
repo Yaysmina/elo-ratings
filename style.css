@@ -301,36 +301,83 @@ button:active {
 
 /* --- Responsive Mobile Styles --- */
 @media (max-width: 768px) {
+    /* --- General Mobile Layout --- */
     .main-content {
-        padding: 1.5rem 1rem;
-    }
-
-    .logo {
-        padding-left: 0.5rem;
-    }
-
-    .tabs {
-        overflow-x: auto;
-        white-space: nowrap;
-        -ms-overflow-style: none;  /* IE and Edge */
-        scrollbar-width: none;  /* Firefox */
-    }
-    
-    .tabs::-webkit-scrollbar {
-        display: none; /* Hide scrollbar for Chrome, Safari, and Opera */
-    }
-
-    .tab-link {
-        flex-shrink: 0; /* Prevent tabs from shrinking */
         padding: 1rem;
     }
-
-    .table-container {
-        overflow-x: auto;
+    .logo {
+        text-align: center;
+        padding-left: 0;
     }
 
-    .player-table th, .player-table td {
-        padding: 1rem 0.75rem;
-        white-space: nowrap;
+    /* --- Responsive Tabs --- */
+    .tabs {
+        flex-wrap: wrap;
+        justify-content: flex-start; /* Aligns tabs to the left when they wrap */
+    }
+
+    /* --- Responsive Tables (Rankings & H2H) --- */
+    .player-table {
+        border: 0;
+    }
+    .player-table thead {
+        /* Hide table headers, they're displayed with ::before */
+        border: none;
+        clip: rect(0 0 0 0);
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        padding: 0;
+        position: absolute;
+        width: 1px;
+    }
+    .player-table tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid var(--bg-secondary);
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+    }
+    .player-table td {
+        display: block;
+        text-align: right;
+        font-size: 1rem;
+        border-bottom: 1px dashed var(--bg-secondary);
+        padding: 0.8rem 0;
+    }
+    .player-table td:last-child {
+        border-bottom: 0;
+    }
+    .player-table td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+        font-size: 0.8rem;
+    }
+
+    /* Special case for H2H score cell alignment */
+    .player-table td.score-cell::before {
+        line-height: 1.5; /* Vertically align label with score */
+    }
+    
+    /* --- Match History Mobile Layout --- */
+    .match-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .match-vs {
+        order: 2; /* Put VS in the middle */
+    }
+    .match-item .match-player:first-of-type {
+        order: 1;
+    }
+    .match-item .match-player:last-of-type {
+        order: 3;
+    }
+    .match-h2h-summary {
+        order: 4;
     }
 }
