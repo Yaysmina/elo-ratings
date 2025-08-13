@@ -16,13 +16,19 @@
         <main class="main-content">
             <h1 class="logo">EloTracker</h1>
             <div class="tabs">
-                <button class="tab-link active" data-tab="rankings">Rankings</button>
+                <button class="tab-link active" data-tab="players">Players</button>
                 <button class="tab-link" data-tab="enter-data">Enter Data</button>
                 <button class="tab-link" data-tab="history">Match History</button>
                 <button class="tab-link" data-tab="h2h">Head-to-Head</button>
             </div>
 
-            <div id="rankings" class="tab-content active">
+            <div id="players" class="tab-content active">
+                <div class="view-toggle-container">
+                    <div class="view-toggle">
+                        <button class="toggle-btn active" data-view="rankings">Rankings</button>
+                        <button class="toggle-btn" data-view="alphabetical">Alphabetical</button>
+                    </div>
+                </div>
                 <div class="table-container">
                     <table class="player-table">
                         <thead>
@@ -70,7 +76,11 @@
 
                 <div class="card settings-card" style="margin-top: 2rem;">
                     <h2>Settings</h2>
-                    <button id="recalculate-all-btn" class="btn-secondary">Recalculate All Ratings</button>
+                    <div class="settings-buttons">
+                        <button id="export-btn" class="btn-secondary">Export Data</button>
+                        <button id="import-btn" class="btn-secondary">Import Data</button>
+                        <input type="file" id="import-file-input" accept=".json" style="display: none;">
+                    </div>
                     <button id="reset-all-btn" class="btn-danger">Reset All Data</button>
                 </div>
             </div>

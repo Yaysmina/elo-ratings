@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     let players = [];
     let matches = [];
+    let currentPlayerView = 'rankings'; // 'rankings' or 'alphabetical'
 
     // --- DOM ELEMENTS ---
     const addPlayerForm = document.getElementById('add-player-form');
@@ -19,8 +20,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const h2hStatsBody = document.getElementById('h2h-stats-body');
     const tabs = document.querySelectorAll('.tab-link');
     const tabContents = document.querySelectorAll('.tab-content');
+    const viewToggleButtons = document.querySelectorAll('.toggle-btn');
     const resetButton = document.getElementById('reset-all-btn');
-    const recalculateButton = document.getElementById('recalculate-all-btn');
+    const exportButton = document.getElementById('export-btn');
+    const importButton = document.getElementById('import-btn');
+    const importFileInput = document.getElementById('import-file-input');
 
     // --- DATA PERSISTENCE ---
     function saveData() {
@@ -45,18 +49,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderPlayerList() {
         playerListBody.innerHTML = '';
-        if (players.length === 0) {
-            playerListBody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No players yet. Add one!</td></tr>';
+        let playersToRender = [];
+
+        if (currentPlayerView === 'rankings') {
+            // Filter for players with at least 3 matches, then sort by rating
+            playersToRender = players
+                .filter(p => p.matchesPlayed >= 3)
+                .sort((a, b) => b.rating - a.rating);
+        } else { // alphabetical view
+            // Sort all players by name
+            playersToRender = [...players].sort((a, b) => a.name.localeCompare(b.name));
+        }
+
+        if (playersToRender.length === 0) {
+            let message = 'No players yet. Add one in the "Enter Data" tab!';
+            if (players.length > 0 && currentPlayerView === 'rankings') {
+                message = 'No players have played 3 or more matches to be ranked.';
+            }
+            playerListBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">${message}</td></tr>`;
             return;
         }
-        
-        const sortedPlayers = [...players].sort((a, b) => b.rating - a.rating);
 
-        sortedPlayers.forEach((player, index) => {
+        playersToRender.forEach((player, index) => {
             const row = document.createElement('tr');
-            // Add classes to each cell for mobile styling
+            // The rank depends on the view
+            const rank = (currentPlayerView === 'rankings') ? index + 1 : '-';
+
             row.innerHTML = `
-                <td class="rankings-col-rank">${index + 1}</td>
+                <td class="rankings-col-rank">${rank}</td>
                 <td class="rankings-col-player">${player.name}</td>
                 <td class="rankings-col-rating">${Math.round(player.rating)}</td>
                 <td class="rankings-col-matches">${player.matchesPlayed}</td>
@@ -244,99 +264,138 @@ document.addEventListener('DOMContentLoaded', () => {
         return { change1: change1, change2: change2 };
     }
 
-function logMatch(p1Name, p2Name, winner) {
-    const player1 = players.find(p => p.name === p1Name);
-    const player2 = players.find(p => p.name === p2Name);
+    function logMatch(p1Name, p2Name, winner) {
+        const player1 = players.find(p => p.name === p1Name);
+        const player2 = players.find(p => p.name === p2Name);
 
-    // --- Elo calculation (unchanged) ---
-    let score1;
-    if (winner === p1Name) score1 = 1.0;
-    else if (winner === p2Name) score1 = 0.0;
-    else score1 = 0.5;
+        // --- Elo calculation (unchanged) ---
+        let score1;
+        if (winner === p1Name) score1 = 1.0;
+        else if (winner === p2Name) score1 = 0.0;
+        else score1 = 0.5;
 
-    const oldRating1 = player1.rating;
-    const oldRating2 = player2.rating;
+        const oldRating1 = player1.rating;
+        const oldRating2 = player2.rating;
 
-    const { change1, change2 } = calculateElo(oldRating1, oldRating2, player1.matchesPlayed, player2.matchesPlayed, score1);
-    
-    player1.rating += change1;
-    player2.rating += change2;
-    player1.matchesPlayed++;
-    player2.matchesPlayed++;
+        const { change1, change2 } = calculateElo(oldRating1, oldRating2, player1.matchesPlayed, player2.matchesPlayed, score1);
+        
+        player1.rating += change1;
+        player2.rating += change2;
+        player1.matchesPlayed++;
+        player2.matchesPlayed++;
 
-    // --- H2H record calculation ---
-    let currentP1Wins = 0;
-    let currentP2Wins = 0;
-    let currentDraws = 0;
+        // --- H2H record calculation ---
+        let currentP1Wins = 0;
+        let currentP2Wins = 0;
+        let currentDraws = 0;
 
-    // Iterate through all matches logged so far to get the historical H2H count
-    for (const historicalMatch of matches) {
-        const hP1 = historicalMatch.player1.name;
-        const hP2 = historicalMatch.player2.name;
+        // Iterate through all matches logged so far to get the historical H2H count
+        for (const historicalMatch of matches) {
+            const hP1 = historicalMatch.player1.name;
+            const hP2 = historicalMatch.player2.name;
 
-        // Check if the historical match involves the two current players
-        if ((hP1 === p1Name && hP2 === p2Name) || (hP1 === p2Name && hP2 === p1Name)) {
-            // Who won that historical match?
-            if (historicalMatch.winner === p1Name) {
-                currentP1Wins++;
-            } else if (historicalMatch.winner === p2Name) {
-                currentP2Wins++;
-            } else if (historicalMatch.winner === 'draw') {
-                currentDraws++;
+            // Check if the historical match involves the two current players
+            if ((hP1 === p1Name && hP2 === p2Name) || (hP1 === p2Name && hP2 === p1Name)) {
+                // Who won that historical match?
+                if (historicalMatch.winner === p1Name) {
+                    currentP1Wins++;
+                } else if (historicalMatch.winner === p2Name) {
+                    currentP2Wins++;
+                } else if (historicalMatch.winner === 'draw') {
+                    currentDraws++;
+                }
             }
         }
-    }
 
-    // Now, account for the *current* match result to get the new total
-    if (winner === p1Name) {
-        currentP1Wins++;
-    } else if (winner === p2Name) {
-        currentP2Wins++;
-    } else if (winner === 'draw') {
-        currentDraws++;
-    }
-
-    // --- Push new match object with H2H record ---
-    matches.push({
-        player1: { name: p1Name, oldRating: oldRating1, newRating: player1.rating, change: change1 },
-        player2: { name: p2Name, oldRating: oldRating2, newRating: player2.rating, change: change2 },
-        winner: winner,
-        timestamp: new Date().toISOString(),
-        h2hRecord: {
-            [p1Name]: currentP1Wins,
-            [p2Name]: currentP2Wins,
-            draws: currentDraws
+        // Now, account for the *current* match result to get the new total
+        if (winner === p1Name) {
+            currentP1Wins++;
+        } else if (winner === p2Name) {
+            currentP2Wins++;
+        } else if (winner === 'draw') {
+            currentDraws++;
         }
-    });
-}
 
-    function recalculateAll() {
-        if (!confirm("This will recalculate all ratings from the very first match. This is useful for fixing data errors but cannot be undone. Proceed?")) {
+        // --- Push new match object with H2H record ---
+        matches.push({
+            player1: { name: p1Name, oldRating: oldRating1, newRating: player1.rating, change: change1 },
+            player2: { name: p2Name, oldRating: oldRating2, newRating: player2.rating, change: change2 },
+            winner: winner,
+            timestamp: new Date().toISOString(),
+            h2hRecord: {
+                [p1Name]: currentP1Wins,
+                [p2Name]: currentP2Wins,
+                draws: currentDraws
+            }
+        });
+    }
+
+    function handleExport() {
+        if (matches.length === 0) {
+            alert("No match data to export.");
             return;
         }
-        
-        const originalMatches = JSON.parse(JSON.stringify(matches)); // Deep copy
-        
-        // Reset players to initial state
-        players.forEach(p => {
-            p.rating = 800;
-            p.matchesPlayed = 0;
-        });
-        
-        // Clear current detailed match history
+
+        // Create a minimal, human-readable version of the match history
+        const leanMatchHistory = matches.map(match => ({
+            player1Name: match.player1.name,
+            player2Name: match.player2.name,
+            winner: match.winner,
+            timestamp: match.timestamp
+        }));
+
+        // Use JSON.stringify with formatting for readability
+        const dataStr = JSON.stringify(leanMatchHistory, null, 2);
+        const dataBlob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(dataBlob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `elo-tracker-data-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert("Minimal match data has been exported! You can now safely edit this file.");
+    }
+
+    function rebuildStateFromMatches(importedMatches) {
+        // Step 1: Clear the current state entirely.
+        players = [];
         matches = [];
 
-        // Re-log every match in chronological order
-        originalMatches.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-        originalMatches.forEach(match => {
-            logMatch(match.player1.name, match.player2.name, match.winner);
+        // Step 2: Create a set of all unique player names from the imported data.
+        // This is robust and supports both old and new export formats.
+        const playerNames = new Set();
+        importedMatches.forEach(match => {
+            playerNames.add(match.player1Name || match.player1.name);
+            playerNames.add(match.player2Name || match.player2.name);
         });
 
-        alert("All ratings have been recalculated!");
+        // Step 3: Add all players to the state with default values.
+        playerNames.forEach(name => {
+            addPlayer(name);
+        });
+
+        // Step 4: Sort matches chronologically to ensure correct calculation order.
+        const sortedMatches = [...importedMatches].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        // Step 5: Re-log every match in order. The `logMatch` function will handle
+        // all calculations and create the rich match objects for our state.
+        sortedMatches.forEach(matchData => {
+            const p1Name = matchData.player1Name || matchData.player1.name;
+            const p2Name = matchData.player2Name || matchData.player2.name;
+            const winner = matchData.winner;
+            
+            // This is the key: we re-use the existing, trusted function.
+            logMatch(p1Name, p2Name, winner);
+        });
+
+        // Step 6: Persist the newly rebuilt state and update the UI.
         saveData();
         renderAll();
     }
-
 
     // --- EVENT LISTENERS ---
     addPlayerForm.addEventListener('submit', (e) => {
@@ -391,7 +450,53 @@ function logMatch(p1Name, p2Name, winner) {
         }
     });
     
-    recalculateButton.addEventListener('click', recalculateAll);
+    viewToggleButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            currentPlayerView = button.dataset.view;
+
+            viewToggleButtons.forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+
+            renderPlayerList();
+        });
+    });
+
+    exportButton.addEventListener('click', handleExport);
+
+    importButton.addEventListener('click', () => {
+        importFileInput.click(); // Trigger the hidden file input
+    });
+
+    importFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) {
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const importedMatches = JSON.parse(event.target.result);
+
+                // Basic validation: check if it's an array and has at least one match
+                if (!Array.isArray(importedMatches)) {
+                    throw new Error("Imported file is not a valid match array.");
+                }
+
+                if (confirm('ARE YOU SURE? This will overwrite all current players and matches with the data from the imported file. This action cannot be undone.')) {
+                    rebuildStateFromMatches(importedMatches);
+                    alert('Data has been successfully imported and all ratings recalculated!');
+                }
+
+            } catch (error) {
+                alert(`Error reading or parsing file: ${error.message}`);
+            } finally {
+                // Reset the input so the same file can be loaded again
+                e.target.value = null;
+            }
+        };
+        reader.readAsText(file);
+    });
 
     // --- INITIALIZATION ---
     function initialize() {

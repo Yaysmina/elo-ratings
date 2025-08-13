@@ -302,6 +302,58 @@ color: #fff;
     text-align: right;
 }
 
+/* --- View Toggle for Players/Rankings --- */
+.view-toggle-container {
+    display: flex;
+    justify-content: flex-start; /* Aligns toggle to the left */
+    margin-bottom: 1.5rem;
+}
+
+.view-toggle {
+    display: inline-flex;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 4px;
+}
+
+.toggle-btn {
+    background-color: transparent;
+    border: none;
+    padding: 0.5rem 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    font-size: 0.9rem;
+}
+
+.toggle-btn.active {
+    background-color: var(--accent-primary);
+    color: white;
+    font-weight: 700;
+}
+
+.toggle-btn:not(.active):hover {
+    background-color: rgba(255,255,255,0.05);
+    color: var(--text-primary);
+}
+
+/* --- Settings Card Buttons --- */
+.settings-buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.settings-buttons button {
+    flex-grow: 1; /* Make buttons fill the space */
+}
+
+.settings-card .btn-danger {
+    width: 100%; /* Make the reset button full-width */
+}
+
 /* --- Responsive Mobile Styles --- */
 @media (max-width: 768px) {
     /* --- General Mobile Layout --- */
