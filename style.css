@@ -205,6 +205,22 @@ button:active {
     background-color: var(--bg-secondary);
 }
 
+/* --- Filter Container --- */
+.filter-container {
+    margin-bottom: 2rem;
+    padding: 1.25rem;
+}
+
+.filter-container label {
+    display: block;
+    margin-bottom: 0.75rem;
+}
+
+.filter-container select {
+    width: 100%;
+}
+
+
 /* --- Match History List --- */
 .match-item {
     background-color: var(--bg-card);
@@ -377,13 +393,16 @@ color: #fff;
 
 
     /* --- Rankings Table (Compact single-row list) --- */
-    #rankings .player-table th, 
-    #rankings .player-table td {
+    .player-table th, 
+    .player-table td {
         padding: 0.8rem 0.5rem;
         font-size: 0.95rem;
         white-space: nowrap;
     }
-    /* Hide the "Rank" column on mobile */
+
+    .rankings-col-rank, .rankings-col-player, .rankings-col-rating, .rankings-col-matches {
+        width: auto;
+    }
     .rankings-col-rank {
         display: none;
     }

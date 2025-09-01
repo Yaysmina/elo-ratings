@@ -18,6 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const playerListBody = document.getElementById('player-list-body');
     const matchHistoryList = document.getElementById('match-history-list');
     const h2hStatsBody = document.getElementById('h2h-stats-body');
+    const historyPlayerFilter = document.getElementById('history-player-filter');
+    const h2hPlayerFilter = document.getElementById('h2h-player-filter');
     const tabs = document.querySelectorAll('.tab-link');
     const tabContents = document.querySelectorAll('.tab-content');
     const viewToggleButtons = document.querySelectorAll('.toggle-btn');
@@ -44,7 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPlayerList();
         renderMatchHistory();
         renderH2HStats();
-        updatePlayerDropdowns();
+        updateAllDropdowns();
+    }
+    
+    function updateAllDropdowns() {
+        // Create a sorted list of players by matches played for dropdowns
+        const sortedPlayers = [...players].sort((a, b) => b.matchesPlayed - a.matchesPlayed);
+
+        updatePlayerDropdowns(sortedPlayers);
+        updateFilterDropdowns(sortedPlayers);
     }
 
     function renderPlayerList() {
@@ -87,16 +97,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderMatchHistory() {
         matchHistoryList.innerHTML = '';
-        if (matches.length === 0) {
-            matchHistoryList.innerHTML = '<li class="card" style="text-align:center;">No matches played yet.</li>';
+        const selectedPlayer = historyPlayerFilter.value;
+        
+        let filteredMatches = matches;
+        if (selectedPlayer) {
+            filteredMatches = matches.filter(match => 
+                match.player1.name === selectedPlayer || match.player2.name === selectedPlayer
+            );
+        }
+
+        if (filteredMatches.length === 0) {
+            const message = selectedPlayer ? `No matches found for ${selectedPlayer}.` : 'No matches played yet.';
+            matchHistoryList.innerHTML = `<li class="card" style="text-align:center;">${message}</li>`;
             return;
         }
 
-        [...matches].reverse().forEach(match => {
+        [...filteredMatches].reverse().forEach(match => {
             const p1 = match.player1;
             const p2 = match.player2;
 
-            // Determine winner/loser status for CSS styling
             let p1Status = 'draw', p2Status = 'draw';
             if (match.winner !== 'draw') {
                 if (match.winner === p1.name) {
@@ -107,8 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     p2Status = 'winner';
                 }
             }
-
-            // Determine color and sign for the Elo change pill
+            
             const p1Color = p1.change > 0 ? 'gain' : p1.change < 0 ? 'loss' : 'draw';
             const p2Color = p2.change > 0 ? 'gain' : p2.change < 0 ? 'loss' : 'draw';
             const p1Sign = p1.change > 0 ? '+' : '';
@@ -117,7 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const listItem = document.createElement('li');
             listItem.className = 'match-item';
             
-            // New, clean, and responsive HTML structure
             listItem.innerHTML = `
                 <div class="match-body">
                     <div class="player-container ${p1Status}">
@@ -125,9 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="elo-change elo-${p1Color}">${p1Sign}${Math.round(p1.change)}</div>
                         <div class="elo-breakdown">${Math.round(p1.oldRating)} &rarr; ${Math.round(p1.newRating)}</div>
                     </div>
-
                     <div class="match-separator">VS</div>
-
                     <div class="player-container ${p2Status}">
                         <h3 class="player-name">${p2.name}</h3>
                         <div class="elo-change elo-${p2Color}">${p2Sign}${Math.round(p2.change)}</div>
@@ -147,15 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderH2HStats() {
         h2hStatsBody.innerHTML = '';
-        const stats = {}; // e.g., { "Alice-vs-Bob": { Alice: 1, Bob: 3 } }
-
+        const stats = {};
+    
         matches.forEach(match => {
-            if (match.winner === 'draw') return; // Skip draws for win/loss stats
+            if (match.winner === 'draw') return;
 
             const p1Name = match.player1.name;
             const p2Name = match.player2.name;
 
-            // Create a consistent key by sorting names alphabetically
             const sortedNames = [p1Name, p2Name].sort();
             const key = `${sortedNames[0]}-vs-${sortedNames[1]}`;
 
@@ -173,13 +187,21 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        const allStats = Object.values(stats);
+        let allStats = Object.values(stats);
+        const selectedPlayer = h2hPlayerFilter.value;
+
+        if (selectedPlayer) {
+            allStats = allStats.filter(stat => 
+                stat.player1.name === selectedPlayer || stat.player2.name === selectedPlayer
+            );
+        }
+
         if (allStats.length === 0) {
-            h2hStatsBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">No head-to-head matches with a winner yet.</td></tr>';
+            const message = selectedPlayer ? `No H2H stats found for ${selectedPlayer}.` : 'No head-to-head matches with a winner yet.';
+            h2hStatsBody.innerHTML = `<tr><td colspan="3" style="text-align:center;">${message}</td></tr>`;
             return;
         }
         
-        // Sort alphabetically by the pairing
         allStats.sort((a, b) => (a.player1.name + a.player2.name).localeCompare(b.player1.name + b.player2.name));
 
         allStats.forEach(stat => {
@@ -194,14 +216,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // --- FORM & UI LOGIC ---
-    function updatePlayerDropdowns() {
+    function updatePlayerDropdowns(sortedPlayers) {
         const p1Val = player1Select.value;
         const p2Val = player2Select.value;
 
         player1Select.innerHTML = '<option value="">-- Select Player 1 --</option>';
         player2Select.innerHTML = '<option value="">-- Select Player 2 --</option>';
         
-        players.forEach(p => {
+        sortedPlayers.forEach(p => {
             player1Select.innerHTML += `<option value="${p.name}">${p.name}</option>`;
             player2Select.innerHTML += `<option value="${p.name}">${p.name}</option>`;
         });
@@ -210,6 +232,22 @@ document.addEventListener('DOMContentLoaded', () => {
         player2Select.value = p2Val;
         
         handlePlayerSelectionChange();
+    }
+
+    function updateFilterDropdowns(sortedPlayers) {
+        const historyVal = historyPlayerFilter.value;
+        const h2hVal = h2hPlayerFilter.value;
+
+        historyPlayerFilter.innerHTML = '<option value="">-- All Players --</option>';
+        h2hPlayerFilter.innerHTML = '<option value="">-- All Players --</option>';
+
+        sortedPlayers.forEach(p => {
+            historyPlayerFilter.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+            h2hPlayerFilter.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+        });
+
+        historyPlayerFilter.value = historyVal;
+        h2hPlayerFilter.value = h2hVal;
     }
     
     function handlePlayerSelectionChange() {
@@ -268,7 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const player1 = players.find(p => p.name === p1Name);
         const player2 = players.find(p => p.name === p2Name);
 
-        // --- Elo calculation (unchanged) ---
         let score1;
         if (winner === p1Name) score1 = 1.0;
         else if (winner === p2Name) score1 = 0.0;
@@ -284,19 +321,16 @@ document.addEventListener('DOMContentLoaded', () => {
         player1.matchesPlayed++;
         player2.matchesPlayed++;
 
-        // --- H2H record calculation ---
         let currentP1Wins = 0;
         let currentP2Wins = 0;
         let currentDraws = 0;
 
-        // Iterate through all matches logged so far to get the historical H2H count
         for (const historicalMatch of matches) {
             const hP1 = historicalMatch.player1.name;
             const hP2 = historicalMatch.player2.name;
-
-            // Check if the historical match involves the two current players
+            
+            // ** BUG FIX WAS HERE ** 
             if ((hP1 === p1Name && hP2 === p2Name) || (hP1 === p2Name && hP2 === p1Name)) {
-                // Who won that historical match?
                 if (historicalMatch.winner === p1Name) {
                     currentP1Wins++;
                 } else if (historicalMatch.winner === p2Name) {
@@ -307,7 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Now, account for the *current* match result to get the new total
         if (winner === p1Name) {
             currentP1Wins++;
         } else if (winner === p2Name) {
@@ -316,7 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
             currentDraws++;
         }
 
-        // --- Push new match object with H2H record ---
         matches.push({
             player1: { name: p1Name, oldRating: oldRating1, newRating: player1.rating, change: change1 },
             player2: { name: p2Name, oldRating: oldRating2, newRating: player2.rating, change: change2 },
@@ -336,7 +368,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Create a minimal, human-readable version of the match history
         const leanMatchHistory = matches.map(match => ({
             player1Name: match.player1.name,
             player2Name: match.player2.name,
@@ -344,7 +375,6 @@ document.addEventListener('DOMContentLoaded', () => {
             timestamp: match.timestamp
         }));
 
-        // Use JSON.stringify with formatting for readability
         const dataStr = JSON.stringify(leanMatchHistory, null, 2);
         const dataBlob = new Blob([dataStr], { type: "application/json" });
         const url = URL.createObjectURL(dataBlob);
@@ -361,38 +391,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function rebuildStateFromMatches(importedMatches) {
-        // Step 1: Clear the current state entirely.
         players = [];
         matches = [];
 
-        // Step 2: Create a set of all unique player names from the imported data.
-        // This is robust and supports both old and new export formats.
         const playerNames = new Set();
         importedMatches.forEach(match => {
             playerNames.add(match.player1Name || match.player1.name);
             playerNames.add(match.player2Name || match.player2.name);
         });
 
-        // Step 3: Add all players to the state with default values.
         playerNames.forEach(name => {
             addPlayer(name);
         });
 
-        // Step 4: Sort matches chronologically to ensure correct calculation order.
         const sortedMatches = [...importedMatches].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-        // Step 5: Re-log every match in order. The `logMatch` function will handle
-        // all calculations and create the rich match objects for our state.
         sortedMatches.forEach(matchData => {
             const p1Name = matchData.player1Name || matchData.player1.name;
             const p2Name = matchData.player2Name || matchData.player2.name;
             const winner = matchData.winner;
             
-            // This is the key: we re-use the existing, trusted function.
             logMatch(p1Name, p2Name, winner);
         });
 
-        // Step 6: Persist the newly rebuilt state and update the UI.
         saveData();
         renderAll();
     }
@@ -421,13 +442,16 @@ document.addEventListener('DOMContentLoaded', () => {
         logMatch(p1Name, p2Name, winner);
         
         logMatchForm.reset();
-        handlePlayerSelectionChange(); // Update dropdowns after reset
+        handlePlayerSelectionChange();
         saveData();
         renderAll();
     });
 
     player1Select.addEventListener('change', handlePlayerSelectionChange);
     player2Select.addEventListener('change', handlePlayerSelectionChange);
+    historyPlayerFilter.addEventListener('change', renderMatchHistory);
+    h2hPlayerFilter.addEventListener('change', renderH2HStats);
+
 
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -453,10 +477,8 @@ document.addEventListener('DOMContentLoaded', () => {
     viewToggleButtons.forEach(button => {
         button.addEventListener('click', () => {
             currentPlayerView = button.dataset.view;
-
             viewToggleButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-
             renderPlayerList();
         });
     });
@@ -464,21 +486,17 @@ document.addEventListener('DOMContentLoaded', () => {
     exportButton.addEventListener('click', handleExport);
 
     importButton.addEventListener('click', () => {
-        importFileInput.click(); // Trigger the hidden file input
+        importFileInput.click();
     });
 
     importFileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
-        if (!file) {
-            return;
-        }
+        if (!file) return;
 
         const reader = new FileReader();
         reader.onload = (event) => {
             try {
                 const importedMatches = JSON.parse(event.target.result);
-
-                // Basic validation: check if it's an array and has at least one match
                 if (!Array.isArray(importedMatches)) {
                     throw new Error("Imported file is not a valid match array.");
                 }
@@ -487,11 +505,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     rebuildStateFromMatches(importedMatches);
                     alert('Data has been successfully imported and all ratings recalculated!');
                 }
-
             } catch (error) {
                 alert(`Error reading or parsing file: ${error.message}`);
             } finally {
-                // Reset the input so the same file can be loaded again
                 e.target.value = null;
             }
         };
