@@ -62,9 +62,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let playersToRender = [];
 
         if (currentPlayerView === 'rankings') {
-            // Filter for players with at least 3 matches, then sort by rating
+            // Filter for players with at least 4 matches, then sort by rating
             playersToRender = players
-                .filter(p => p.matchesPlayed >= 3)
+                .filter(p => p.matchesPlayed >= 4)
                 .sort((a, b) => b.rating - a.rating);
         } else { // alphabetical view
             // Sort all players by name
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (playersToRender.length === 0) {
             let message = 'No players yet. Add one in the "Enter Data" tab!';
             if (players.length > 0 && currentPlayerView === 'rankings') {
-                message = 'No players have played 3 or more matches to be ranked.';
+                message = 'No players have played 4 or more matches to be ranked.';
             }
             playerListBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">${message}</td></tr>`;
             return;
