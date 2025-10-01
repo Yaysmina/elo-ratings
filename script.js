@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     let players = [];
     let matches = [];
+    let rankedPlayers = [];
+    let otherPlayers = [];
     let currentPlayerView = 'rankings'; // 'rankings' or 'alphabetical'
 
     // --- DOM ELEMENTS ---
@@ -50,11 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function updateAllDropdowns() {
-        // Create a sorted list of players by matches played for dropdowns
-        const sortedPlayers = [...players].sort((a, b) => b.matchesPlayed - a.matchesPlayed);
+        // Sort ALL players by matches played (desc) first, then split them.
+        const sortedByMatches = [...players].sort((a, b) => b.matchesPlayed - a.matchesPlayed);
+        rankedPlayers = sortedByMatches.filter(p => p.matchesPlayed >= 4);
+        otherPlayers = sortedByMatches.filter(p => p.matchesPlayed < 4);
 
-        updatePlayerDropdowns(sortedPlayers);
-        updateFilterDropdowns(sortedPlayers);
+        updatePlayerDropdowns();
+        updateFilterDropdowns();
     }
 
     function renderPlayerList() {
@@ -66,9 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
             playersToRender = players
                 .filter(p => p.matchesPlayed >= 4)
                 .sort((a, b) => b.rating - a.rating);
-        } else { // alphabetical view
-            // Sort all players by name
-            playersToRender = [...players].sort((a, b) => a.name.localeCompare(b.name));
+        } else { // 'all-players' view
+            // Sort all players by matches played
+            playersToRender = [...players].sort((a, b) => b.matchesPlayed - a.matchesPlayed);
         }
 
         if (playersToRender.length === 0) {
@@ -113,8 +117,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         [...filteredMatches].reverse().forEach(match => {
-            const p1 = match.player1;
-            const p2 = match.player2;
+            let p1 = match.player1;
+            let p2 = match.player2;
+
+            // NEW: If a player is selected, ensure they are p1 (on the left)
+            if (selectedPlayer && p2.name === selectedPlayer) {
+                [p1, p2] = [p2, p1]; // Swap players
+            }
 
             let p1Status = 'draw', p2Status = 'draw';
             if (match.winner !== 'draw') {
@@ -163,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderH2HStats() {
         h2hStatsBody.innerHTML = '';
         const stats = {};
-    
+
         matches.forEach(match => {
             if (match.winner === 'draw') return;
 
@@ -176,10 +185,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!stats[key]) {
                 stats[key] = {
                     player1: { name: sortedNames[0], wins: 0 },
-                    player2: { name: sortedNames[1], wins: 0 }
+                    player2: { name: sortedNames[1], wins: 0 },
+                    totalGames: 0
                 };
             }
-
+            
+            stats[key].totalGames++;
             if (match.winner === stats[key].player1.name) {
                 stats[key].player1.wins++;
             } else if (match.winner === stats[key].player2.name) {
@@ -194,6 +205,11 @@ document.addEventListener('DOMContentLoaded', () => {
             allStats = allStats.filter(stat => 
                 stat.player1.name === selectedPlayer || stat.player2.name === selectedPlayer
             );
+            // NEW: Sort by most played opponent first when filtered
+            allStats.sort((a, b) => b.totalGames - a.totalGames);
+        } else {
+            // Default sort alphabetically
+            allStats.sort((a, b) => (a.player1.name + a.player2.name).localeCompare(b.player1.name + b.player2.name));
         }
 
         if (allStats.length === 0) {
@@ -202,52 +218,87 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         
-        allStats.sort((a, b) => (a.player1.name + a.player2.name).localeCompare(b.player1.name + b.player2.name));
-
         allStats.forEach(stat => {
+            let displayP1 = stat.player1;
+            let displayP2 = stat.player2;
+
+            // NEW: If a player is selected, ensure they are on the left
+            if (selectedPlayer && displayP1.name !== selectedPlayer) {
+                [displayP1, displayP2] = [displayP2, displayP1];
+            }
+
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td data-label="Player 1">${stat.player1.name}</td>
-                <td data-label="Score" class="score-cell">${stat.player1.wins} - ${stat.player2.wins}</td>
-                <td data-label="Player 2" class="player2-name-cell">${stat.player2.name}</td>
+                <td data-label="Player 1">${displayP1.name}</td>
+                <td data-label="Score" class="score-cell">${displayP1.wins} - ${displayP2.wins}</td>
+                <td data-label="Player 2" class="player2-name-cell">${displayP2.name}</td>
             `;
             h2hStatsBody.appendChild(row);
         });
     }
-    
-    // --- FORM & UI LOGIC ---
-    function updatePlayerDropdowns(sortedPlayers) {
-        const p1Val = player1Select.value;
-        const p2Val = player2Select.value;
 
-        player1Select.innerHTML = '<option value="">-- Select Player 1 --</option>';
-        player2Select.innerHTML = '<option value="">-- Select Player 2 --</option>';
+    // --- FORM & UI LOGIC ---
+    function populateSelectWithOptions(select, playerList, viewType, defaultOptionText, hasOthers) {
+        select.innerHTML = ''; // Clear existing options
+
+        // Add the primary default/placeholder option
+        select.innerHTML += `<option value="">${defaultOptionText}</option>`;
         
-        sortedPlayers.forEach(p => {
-            player1Select.innerHTML += `<option value="${p.name}">${p.name}</option>`;
-            player2Select.innerHTML += `<option value="${p.name}">${p.name}</option>`;
+        // Add players
+        playerList.forEach(p => {
+            select.innerHTML += `<option value="${p.name}">${p.name}</option>`;
         });
 
-        player1Select.value = p1Val;
-        player2Select.value = p2Val;
+        // Add the appropriate navigation option at the end
+        if (viewType === 'ranked' && hasOthers) {
+            select.innerHTML += `<option value="other">-- Other Players --</option>`;
+        } else if (viewType === 'unranked') {
+            select.innerHTML += `<option value="back_to_ranked">-- Back to Ranked Players --</option>`;
+        }
         
+        // Store info for the event handler
+        select.dataset.view = viewType;
+        select.dataset.defaultOption = defaultOptionText;
+    }
+
+    function updatePlayerDropdowns() {
+        populateSelectWithOptions(player1Select, rankedPlayers, 'ranked', '-- Select Player 1 --', otherPlayers.length > 0);
+        populateSelectWithOptions(player2Select, rankedPlayers, 'ranked', '-- Select Player 2 --', otherPlayers.length > 0);
         handlePlayerSelectionChange();
     }
 
-    function updateFilterDropdowns(sortedPlayers) {
-        const historyVal = historyPlayerFilter.value;
-        const h2hVal = h2hPlayerFilter.value;
+    function updateFilterDropdowns() {
+        populateSelectWithOptions(historyPlayerFilter, rankedPlayers, 'ranked', '-- All Players --', otherPlayers.length > 0);
+        populateSelectWithOptions(h2hPlayerFilter, rankedPlayers, 'ranked', '-- All Players --', otherPlayers.length > 0);
+    }
 
-        historyPlayerFilter.innerHTML = '<option value="">-- All Players --</option>';
-        h2hPlayerFilter.innerHTML = '<option value="">-- All Players --</option>';
+    /**
+     * A unified event handler for all player selection dropdowns.
+     * Handles view switching (ranked/unranked) and triggers appropriate UI updates.
+     */
+    function onSelectChange(event) {
+        const select = event.target;
+        const value = select.value;
 
-        sortedPlayers.forEach(p => {
-            historyPlayerFilter.innerHTML += `<option value="${p.name}">${p.name}</option>`;
-            h2hPlayerFilter.innerHTML += `<option value="${p.name}">${p.name}</option>`;
-        });
+        // First, handle view switching logic
+        if (value === 'other') {
+            populateSelectWithOptions(select, otherPlayers, 'unranked', select.dataset.defaultOption, true);
+            select.value = ''; // Set to the new placeholder
+            return; // Stop further processing as this was a navigation action
+        } else if (value === 'back_to_ranked') {
+            populateSelectWithOptions(select, rankedPlayers, 'ranked', select.dataset.defaultOption, otherPlayers.length > 0);
+            select.value = ''; // Reset to default placeholder
+            return; // Stop further processing
+        }
 
-        historyPlayerFilter.value = historyVal;
-        h2hPlayerFilter.value = h2hVal;
+        // If it wasn't a view switch, run the appropriate update logic based on which dropdown was changed
+        if (select === player1Select || select === player2Select) {
+            handlePlayerSelectionChange();
+        } else if (select === historyPlayerFilter) {
+            renderMatchHistory();
+        } else if (select === h2hPlayerFilter) {
+            renderH2HStats();
+        }
     }
     
     function handlePlayerSelectionChange() {
@@ -271,6 +322,42 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             winnerSelect.innerHTML = '<option value="">-- Select Players First --</option>';
         }
+    }
+
+    function handleOtherPlayerSelection(event) {
+        const selectElement = event.target;
+        // Clean up any previously added temporary option
+        selectElement.querySelector('[data-temp="true"]')?.remove();
+
+        if (selectElement.value !== 'other') {
+            return;
+        }
+
+        const otherPlayerNames = otherPlayers.map(p => p.name).join(', ');
+        const promptMessage = `The following players are not on the rankings. Please type one name exactly as shown:\n\n${otherPlayerNames}`;
+        
+        const chosenName = prompt(promptMessage);
+
+        if (!chosenName) {
+            selectElement.value = ''; // Reset if user cancels
+            selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+            return;
+        }
+
+        const matchedPlayer = otherPlayers.find(p => p.name.toLowerCase() === chosenName.trim().toLowerCase());
+
+        if (matchedPlayer) {
+            // Create a new temporary option for the chosen player
+            const newOption = new Option(matchedPlayer.name, matchedPlayer.name);
+            newOption.dataset.temp = 'true'; // Mark it as temporary
+            selectElement.appendChild(newOption);
+            selectElement.value = matchedPlayer.name;
+        } else {
+            alert(`'${chosenName}' is not a valid player from the 'Other Players' list.`);
+            selectElement.value = ''; // Reset on invalid input
+        }
+        // Manually trigger a change event to update dependant UI (like the other dropdowns or filters)
+        selectElement.dispatchEvent(new Event('change', { bubbles: true }));
     }
     
     // --- CORE LOGIC ---
@@ -329,7 +416,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const hP1 = historicalMatch.player1.name;
             const hP2 = historicalMatch.player2.name;
             
-            // ** BUG FIX WAS HERE ** 
             if ((hP1 === p1Name && hP2 === p2Name) || (hP1 === p2Name && hP2 === p1Name)) {
                 if (historicalMatch.winner === p1Name) {
                     currentP1Wins++;
@@ -427,7 +513,7 @@ document.addEventListener('DOMContentLoaded', () => {
             renderAll();
         }
     });
-    
+
     logMatchForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const p1Name = player1Select.value;
@@ -442,16 +528,14 @@ document.addEventListener('DOMContentLoaded', () => {
         logMatch(p1Name, p2Name, winner);
         
         logMatchForm.reset();
-        handlePlayerSelectionChange();
         saveData();
-        renderAll();
+        renderAll(); // Will reset dropdowns to default ranked view
     });
 
-    player1Select.addEventListener('change', handlePlayerSelectionChange);
-    player2Select.addEventListener('change', handlePlayerSelectionChange);
-    historyPlayerFilter.addEventListener('change', renderMatchHistory);
-    h2hPlayerFilter.addEventListener('change', renderH2HStats);
-
+    // Attach the new unified change handler to all relevant dropdowns
+    [player1Select, player2Select, historyPlayerFilter, h2hPlayerFilter].forEach(el => {
+        el.addEventListener('change', onSelectChange);
+    });
 
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
@@ -473,7 +557,7 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('All data has been reset.');
         }
     });
-    
+
     viewToggleButtons.forEach(button => {
         button.addEventListener('click', () => {
             currentPlayerView = button.dataset.view;
@@ -484,10 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     exportButton.addEventListener('click', handleExport);
-
-    importButton.addEventListener('click', () => {
-        importFileInput.click();
-    });
+    importButton.addEventListener('click', () => importFileInput.click());
 
     importFileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -497,11 +578,8 @@ document.addEventListener('DOMContentLoaded', () => {
         reader.onload = (event) => {
             try {
                 const importedMatches = JSON.parse(event.target.result);
-                if (!Array.isArray(importedMatches)) {
-                    throw new Error("Imported file is not a valid match array.");
-                }
-
-                if (confirm('ARE YOU SURE? This will overwrite all current players and matches with the data from the imported file. This action cannot be undone.')) {
+                if (!Array.isArray(importedMatches)) throw new Error("Imported file is not a valid match array.");
+                if (confirm('ARE YOU SURE? This will overwrite all current data. This action cannot be undone.')) {
                     rebuildStateFromMatches(importedMatches);
                     alert('Data has been successfully imported and all ratings recalculated!');
                 }
