@@ -89,10 +89,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // The rank depends on the view
             const rank = (currentPlayerView === 'rankings') ? index + 1 : '-';
 
+            // Winstreak display logic
+            let winstreakDisplay = '';
+            if (currentPlayerView === 'rankings' && player.winstreak >= 2) {
+                winstreakDisplay = ` <span class="winstreak">🔥${player.winstreak}</span>`;
+            }
+
             row.innerHTML = `
                 <td class="rankings-col-rank">${rank}</td>
                 <td class="rankings-col-player">${player.name}</td>
-                <td class="rankings-col-rating">${Math.round(player.rating)}</td>
+                <td class="rankings-col-rating">${Math.round(player.rating)}${winstreakDisplay}</td>
                 <td class="rankings-col-matches">${player.matchesPlayed}</td>
             `;
             playerListBody.appendChild(row);
@@ -371,7 +377,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         }
 
-        players.push({ name: name.trim(), rating: 800, matchesPlayed: 0 });
+        players.push({ name: name.trim(), rating: 800, matchesPlayed: 0, winstreak: 0 });
         return true;
     }
 
@@ -387,6 +393,33 @@ document.addEventListener('DOMContentLoaded', () => {
         const change2 = k2 * -performanceDelta1;
         
         return { change1: change1, change2: change2 };
+    }
+
+    function calculateAllWinstreaks() {
+        for (const player of players) {
+            let currentStreak = 0;
+            // Iterate backwards through all matches
+            for (let i = matches.length - 1; i >= 0; i--) {
+                const match = matches[i];
+
+                // Check if the player participated in this match
+                const isP1 = match.player1.name === player.name;
+                const isP2 = match.player2.name === player.name;
+
+                if (isP1 || isP2) {
+                    // This is one of the player's matches. Did they win?
+                    if (match.winner === player.name) {
+                        currentStreak++;
+                    } else {
+                        // It was a loss or draw, so the streak ends here.
+                        // We can stop searching further back for this player.
+                        break; 
+                    }
+                }
+                // If player wasn't in the match, continue to the next older one.
+            }
+            player.winstreak = currentStreak;
+        }
     }
 
     function logMatch(p1Name, p2Name, winner) {
@@ -500,6 +533,8 @@ document.addEventListener('DOMContentLoaded', () => {
             logMatch(p1Name, p2Name, winner);
         });
 
+        calculateAllWinstreaks(); // Calculate all streaks once at the end
+
         saveData();
         renderAll();
     }
@@ -526,6 +561,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         logMatch(p1Name, p2Name, winner);
+        calculateAllWinstreaks(); // Recalculate after match is logged
         
         logMatchForm.reset();
         saveData();
@@ -595,6 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- INITIALIZATION ---
     function initialize() {
         loadData();
+        calculateAllWinstreaks();
         renderAll();
     }
 
