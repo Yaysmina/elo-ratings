@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <script src="script.js" defer></script>
+    <script type="module" src="js/main.js" defer></script>
 </head>
 <body>
     <div class="app-container">
@@ -70,6 +70,24 @@
                     <form id="add-player-form">
                         <label for="new-player-name">Player Name</label>
                         <input type="text" id="new-player-name" placeholder="Enter player name" required>
+                        
+                        <!-- MODIFIED: Add skill level selection -->
+                        <label>Starting Skill Level</label>
+                        <div class="radio-group">
+                            <div class="radio-option">
+                                <input type="radio" id="elo-beginner" name="starting-elo" value="600">
+                                <label for="elo-beginner">Beginner (600)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="elo-intermediate" name="starting-elo" value="800" checked>
+                                <label for="elo-intermediate">Intermediate (800)</label>
+                            </div>
+                            <div class="radio-option">
+                                <input type="radio" id="elo-advanced" name="starting-elo" value="1000">
+                                <label for="elo-advanced">Advanced (1000)</label>
+                            </div>
+                        </div>
+
                         <button type="submit">Add Player</button>
                     </form>
                 </div>
@@ -115,7 +133,6 @@
                     </table>
                 </div>
             </div>
-
         </main>
     </div>
 </body>
