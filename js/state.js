@@ -104,8 +104,8 @@ export function calculateStateFromHistory() {
 
             const { change1, change2 } = calculateElo(oldRating1, oldRating2, p1.matchesPlayed, p2.matchesPlayed, score1);
             
-            const newRating1 = oldRating1 + change1;
-            const newRating2 = oldRating2 + change2;
+            const newRating1 = Math.round(oldRating1 + change1);
+            const newRating2 = Math.round(oldRating2 + change2);
 
             // Update player stats
             p1.rating = newRating1;
