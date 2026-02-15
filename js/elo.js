@@ -17,13 +17,12 @@ const TRANSITION_MATCHES = 20; // Matches until K-Factor reaches K_MIN
 export function calculateElo(rating1, rating2, matches1, matches2, score1) {
     const k1 = calculateKFactor(matches1);
     const k2 = calculateKFactor(matches2);
-
     const expected1 = 1 / (1 + 10 ** ((rating2 - rating1) / 400));
     
     const performanceDelta1 = score1 - expected1;
     
-    const change1 = k1 * performanceDelta1;
-    const change2 = k2 * -performanceDelta1; // Player 2's change is the inverse
+    const change1 = Math.round(k1 * performanceDelta1);
+    const change2 = Math.round(k2 * -performanceDelta1);
     
     return { change1, change2 };
 }
