@@ -137,7 +137,7 @@ export function renderPlayerTable(rankedPlayersSortedByRating, allPlayersSortedB
         const actionCell = `
             <td class="rankings-col-action ${actionClass}">
                 <button class="archive-btn ${isArchived ? 'is-archived' : 'is-visible'}" data-name="${player.name}">
-                    ${isArchived ? 'Show' : 'Hide'}
+                    ${isArchived ? 'Hidden' : 'Shown'}
                 </button>
             </td>`;
 
