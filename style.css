@@ -475,7 +475,7 @@ button:active {
 }
 
 .archive-btn.is-visible:hover {
-    background-color: rgba(255,255,255,0.05);
+    background-color: #d83c54;
     color: var(--text-primary);
 }
 
@@ -486,7 +486,7 @@ button:active {
 }
 
 .archive-btn.is-archived:hover {
-    background-color: #d83c54;
+    background-color: rgba(255,255,255,0.05);
 }
 
 .archive-btn:active {
