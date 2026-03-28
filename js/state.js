@@ -1,3 +1,5 @@
+// js/state.js
+
 import { calculateElo } from './elo.js';
 import * as config from './config.js';
 
@@ -7,6 +9,7 @@ let gameData = [];
 export const eventTypes = {
     ADD_PLAYER: 'ADD_PLAYER',
     LOG_MATCH: 'LOG_MATCH',
+    TOGGLE_ARCHIVE: 'TOGGLE_ARCHIVE',
 };
 
 /**
@@ -82,11 +85,11 @@ export function calculateStateFromHistory() {
             if (name && !playersMap.has(name)) {
                 playersMap.set(name, {
                     name,
-                    // MODIFIED: Use payload elo, or fall back to the default for old data
                     rating: elo || config.INITIAL_RATING,
                     matchesPlayed: 0,
                     winstreak: 0,
-                    history: []
+                    history: [],
+                    isArchived: false // NEW
                 });
             }
         } else if (event.type === eventTypes.LOG_MATCH) {
@@ -123,8 +126,6 @@ export function calculateStateFromHistory() {
             });
         }
     }
-    // ----------------------------------------------------------------------
-
 
     // Post-processing: Calculate winstreaks
     const allPlayersFromMap = Array.from(playersMap.values());
@@ -144,29 +145,79 @@ export function calculateStateFromHistory() {
         }
         player.winstreak = currentStreak;
     });
-    
+        
+    const archivedSet = getArchivedPlayers();
+
     // 1. Create the canonical list, sorted by matches played (descending).
     const allPlayersSortedByMatches = [...allPlayersFromMap].sort((a, b) => b.matchesPlayed - a.matchesPlayed);
     
-    // 2. Create a special-case list for the "Rankings" table view.
+    // 2. Create a special-case list for the "Rankings" table view (Excluding Archived).
     const rankedPlayersSortedByRating = allPlayersSortedByMatches
-        .filter(p => p.matchesPlayed >= config.RANKING_MIN_MATCHES)
+        .filter(p => p.matchesPlayed >= config.RANKING_MIN_MATCHES && !archivedSet.has(p.name))
         .sort((a, b) => b.rating - a.rating);
 
-    // 3. Create lists for the dropdown optgroups.
+    // 3. Create lists for the dropdown optgroups (Excluding Archived).
     const rankedPlayersSortedByMatches = allPlayersSortedByMatches
-        .filter(p => p.matchesPlayed >= config.RANKING_MIN_MATCHES);
+        .filter(p => p.matchesPlayed >= config.RANKING_MIN_MATCHES && !archivedSet.has(p.name));
     
     const otherPlayersSortedByMatches = allPlayersSortedByMatches
-        .filter(p => p.matchesPlayed < config.RANKING_MIN_MATCHES);
-
+        .filter(p => p.matchesPlayed < config.RANKING_MIN_MATCHES && !archivedSet.has(p.name));
 
     return {
-        allPlayers: allPlayersSortedByMatches, // For the "All Players" view
-        rankedPlayersByRating: rankedPlayersSortedByRating, // For the "Rankings" table
-        rankedPlayersByMatches: rankedPlayersSortedByMatches, // For dropdowns
-        otherPlayersByMatches: otherPlayersSortedByMatches, // For dropdowns
+        allPlayers: allPlayersSortedByMatches, 
+        rankedPlayersByRating: rankedPlayersSortedByRating,
+        rankedPlayersByMatches: rankedPlayersSortedByMatches,
+        otherPlayersByMatches: otherPlayersSortedByMatches,
         matches: detailedMatches,
-        playerNames: allPlayersSortedByMatches.map(p => p.name)
+        playerNames: allPlayersSortedByMatches.map(p => p.name),
+        archivedNames: archivedSet
     };
+}
+
+/**
+ * Renames a player throughout the entire event history.
+ * @param {string} oldName - The current name of the player.
+ * @param {string} newName - The new name for the player.
+ */
+export function renamePlayer(oldName, newName) {
+    if (!newName || oldName === newName) return;
+
+    gameData.forEach(event => {
+        if (event.type === eventTypes.ADD_PLAYER && event.payload.name === oldName) {
+            event.payload.name = newName;
+        } else if (event.type === eventTypes.LOG_MATCH) {
+            if (event.payload.player1Name === oldName) event.payload.player1Name = newName;
+            if (event.payload.player2Name === oldName) event.payload.player2Name = newName;
+            if (event.payload.winner === oldName) event.payload.winner = newName;
+        } else if (event.type === eventTypes.TOGGLE_ARCHIVE) {
+            const player = playersMap.get(event.payload.name);
+            if (player) {
+                player.isArchived = event.payload.archived;
+            }
+}
+    });
+    saveData();
+}
+
+const ARCHIVE_KEY = 'elo-tracker-archived-players';
+
+/**
+ * Gets the set of archived player names from localStorage.
+ */
+export function getArchivedPlayers() {
+    const archived = localStorage.getItem(ARCHIVE_KEY);
+    return new Set(archived ? JSON.parse(archived) : []);
+}
+
+/**
+ * Toggles a player's archived status.
+ */
+export function toggleArchivePlayer(name) {
+    const archived = getArchivedPlayers();
+    if (archived.has(name)) {
+        archived.delete(name);
+    } else {
+        archived.add(name);
+    }
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(Array.from(archived)));
 }

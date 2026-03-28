@@ -31,6 +31,8 @@ export function init() {
         exportButton: '#export-btn',
         importButton: '#import-btn',
         importFileInput: '#import-file-input',
+        actionHeader: 'th.rankings-col-action',
+        rankHeader: 'th.rankings-col-rank'
     };
     for (const key in selectors) {
         dom[key] = document.querySelectorAll(selectors[key]).length > 1 
@@ -72,44 +74,88 @@ export function bindEvents(handlers) {
             currentPlayerView = button.dataset.view;
             dom.viewToggleButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
-            handlers.onFilterChange(); // Re-render the player list with the new view
+            handlers.onFilterChange();
         });
+    });
+
+    dom.playerListBody.addEventListener('click', (e) => {
+        const renameBtn = e.target.closest('.edit-player-btn');
+        if (renameBtn) {
+            handlers.onRenamePlayer(renameBtn.dataset.name);
+            return;
+        }
+
+        const archiveBtn = e.target.closest('.archive-btn');
+        if (archiveBtn) {
+            handlers.onToggleArchive(archiveBtn.dataset.name);
+        }
     });
 }
 
-/**
- * Renders the main player rankings/list table.
- * @param {Array} rankedPlayersSortedByRating - Players sorted by rating for the 'Rankings' view.
- * @param {Array} allPlayersSortedByMatches - All players sorted by matches for the 'All Players' view.
- */
-export function renderPlayerTable(rankedPlayersSortedByRating, allPlayersSortedByMatches) {
+export function renderPlayerTable(rankedPlayersSortedByRating, allPlayersSortedByMatches, archivedNames = new Set()) {
     dom.playerListBody.innerHTML = '';
     
-    // Logic is now simpler: just pick the correct pre-sorted list.
-    const playersToRender = currentPlayerView === 'rankings' 
+    const isRankingsView = currentPlayerView === 'rankings';
+    
+    // 1. Toggle Header Visibility
+    if (dom.rankHeader) {
+        dom.rankHeader.classList.toggle('hidden-column', !isRankingsView);
+    }
+    if (dom.actionHeader) {
+        dom.actionHeader.classList.toggle('hidden-column', isRankingsView);
+        dom.actionHeader.textContent = ''; 
+    }
+
+    const playersToRender = isRankingsView 
         ? rankedPlayersSortedByRating 
         : allPlayersSortedByMatches;
 
     if (playersToRender.length === 0) {
-        let message = 'No players yet. Add one in the "Enter Data" tab!';
-        // Check the source of truth to provide a more specific message
-        if (allPlayersSortedByMatches.length > 0 && currentPlayerView === 'rankings') {
-            message = `No players have played ${RANKING_MIN_MATCHES} or more matches to be ranked.`;
-        }
-        dom.playerListBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">${message}</td></tr>`;
+        const message = (allPlayersSortedByMatches.length > 0 && isRankingsView) 
+            ? 'No active players have played enough matches.' 
+            : 'No players yet.';
+        dom.playerListBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem;">${message}</td></tr>`;
         return;
     }
 
     playersToRender.forEach((player, index) => {
         const row = document.createElement('tr');
-        const rank = (currentPlayerView === 'rankings' && player.matchesPlayed >= RANKING_MIN_MATCHES) ? index + 1 : '-';
-        const winstreakDisplay = (player.winstreak >= 2) ? ` <span class="winstreak">🔥${player.winstreak}</span>` : '';
+        const isArchived = archivedNames.has(player.name);
+        
+        if (isArchived) row.classList.add('row-archived');
+
+        // Logic for winstreak and edit button
+        const winstreakDisplay = (player.winstreak >= 2) ? `<span class="winstreak">🔥${player.winstreak}</span>` : '';
+        const editBtn = !isRankingsView ? `<button class="edit-player-btn" data-name="${player.name}">✏️</button>` : '';
+        
+        // Define Rank Cell
+        const rankClass = !isRankingsView ? 'hidden-column' : '';
+        const rankCell = `<td class="rankings-col-rank ${rankClass}">${index + 1}</td>`;
+
+        // Define Action Cell
+        const actionClass = isRankingsView ? 'hidden-column' : '';
+        const actionCell = `
+            <td class="rankings-col-action ${actionClass}">
+                <button class="archive-btn ${isArchived ? 'is-archived' : 'is-visible'}" data-name="${player.name}">
+                    ${isArchived ? 'Show' : 'Hide'}
+                </button>
+            </td>`;
 
         row.innerHTML = `
-            <td class="rankings-col-rank">${rank}</td>
-            <td class="rankings-col-player">${player.name}</td>
-            <td class="rankings-col-rating">${Math.round(player.rating)}${winstreakDisplay}</td>
+            ${rankCell}
+            <td class="rankings-col-player">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    ${player.name}${editBtn}
+                </div>
+            </td>
+            <td class="rankings-col-rating">
+                <span class="rating-wrapper">
+                    ${Math.round(player.rating)}
+                    ${winstreakDisplay}
+                </span>
+            </td>
             <td class="rankings-col-matches">${player.matchesPlayed}</td>
+            ${actionCell}
         `;
         dom.playerListBody.appendChild(row);
     });

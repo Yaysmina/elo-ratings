@@ -1,3 +1,5 @@
+// js/main.js
+
 import * as state from './state.js';
 import * as view from './view.js';
 import { INITIAL_RATING } from './config.js';
@@ -7,17 +9,17 @@ import { INITIAL_RATING } from './config.js';
  */
 function updateUI() {
     const currentState = state.calculateStateFromHistory();
-    // Destructure the new, specific lists
     const {
         allPlayers,
         rankedPlayersByRating,
         rankedPlayersByMatches,
         otherPlayersByMatches,
-        matches
+        matches,
+        archivedNames
     } = currentState;
 
-    // Pass the correct lists to the view functions
-    view.renderPlayerTable(rankedPlayersByRating, allPlayers);
+    // Pass archivedNames as the third argument
+    view.renderPlayerTable(rankedPlayersByRating, allPlayers, archivedNames); 
     view.renderMatchHistory(matches);
     view.renderH2HStats(matches);
     view.updateAllDropdowns(rankedPlayersByMatches, otherPlayersByMatches);
@@ -30,8 +32,6 @@ const handlers = {
         const form = e.target;
         const nameInput = form.querySelector('#new-player-name');
         const name = nameInput.value.trim();
-
-        // MODIFIED: Get the selected ELO value from the radio buttons
         const selectedEloRadio = form.querySelector('input[name="starting-elo"]:checked');
         const elo = selectedEloRadio ? parseInt(selectedEloRadio.value, 10) : INITIAL_RATING;
 
@@ -45,7 +45,6 @@ const handlers = {
             return;
         }
         
-        // MODIFIED: Include elo in the event payload
         state.addEvent(state.eventTypes.ADD_PLAYER, { name, elo });
         view.resetForm('addPlayerForm');
         updateUI();
@@ -69,9 +68,12 @@ const handlers = {
     },
 
     onFilterChange: () => {
-        // No state change, just re-render views that depend on filters.
-        const { rankedPlayersByRating, allPlayers, matches } = state.calculateStateFromHistory();
-        view.renderPlayerTable(rankedPlayersByRating, allPlayers);
+        // 1. Destructure archivedNames here as well
+        const { rankedPlayersByRating, allPlayers, matches, archivedNames } = state.calculateStateFromHistory();
+        
+        // 2. Pass it as the 3rd argument
+        view.renderPlayerTable(rankedPlayersByRating, allPlayers, archivedNames);
+        
         view.renderMatchHistory(matches);
         view.renderH2HStats(matches);
     },
@@ -120,7 +122,26 @@ const handlers = {
             }
         };
         reader.readAsText(file);
-    }
+    },
+    onRenamePlayer: (oldName) => {
+        const newName = prompt(`Enter new name for ${oldName}:`, oldName);
+        if (!newName || newName.trim() === "" || newName === oldName) return;
+        
+        const trimmedNewName = newName.trim();
+        const { playerNames } = state.calculateStateFromHistory();
+        
+        if (playerNames.some(p => p.toLowerCase() === trimmedNewName.toLowerCase())) {
+            alert('A player with this name already exists.');
+            return;
+        }
+
+        state.renamePlayer(oldName, trimmedNewName);
+        updateUI();
+    },
+    onToggleArchive: (name) => {
+        state.toggleArchivePlayer(name);
+        updateUI();
+    },
 };
 
 /**

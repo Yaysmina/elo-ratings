@@ -30,7 +30,7 @@ body {
     font-weight: 700;
     color: var(--accent-primary);
     margin: 0 0 1rem 0;
-    padding-left: 1.5rem; /* Align with table content */
+    padding-left: 1.5rem;
 }
 
 .card {
@@ -52,14 +52,13 @@ body {
 form {
     display: flex;
     flex-direction: column;
-    gap: 1.25rem; /* MODIFIED: Increased gap for better spacing */
+    gap: 1.25rem;
 }
 
 label {
     font-size: 0.9rem;
     color: var(--text-secondary);
     font-weight: 500;
-    /* MODIFIED: Negative margin to tighten groups */
     margin-bottom: -0.5rem; 
 }
 
@@ -148,7 +147,7 @@ button:active {
     color: var(--text-secondary);
     transition: all 0.2s ease;
     font-size: 0.9rem;
-    margin-bottom: 0; /* Override the default label margin */
+    margin-bottom: 0; 
 }
 
 .radio-option input[type="radio"]:hover + label {
@@ -169,8 +168,8 @@ button:active {
 .main-content {
     padding: 2rem;
     overflow-y: auto;
-    max-width: 1200px; /* Optional: constrain width for better readability */
-    margin: 0 auto; /* Optional: center the content */
+    max-width: 1200px;
+    margin: 0 auto; 
 }
 
 .tabs {
@@ -199,7 +198,7 @@ button:active {
 .tab-link::after {
     content: '';
     position: absolute;
-    bottom: -1px; /* Align with parent's border */
+    bottom: -1px;
     left: 0;
     right: 0;
     height: 3px;
@@ -232,27 +231,44 @@ button:active {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- Player Rankings Table --- */
+/* --- Table Structure Fixes --- */
 .player-table {
+    table-layout: auto; 
     width: 100%;
     border-collapse: collapse;
 }
 
-.player-table th, .player-table td {
-    padding: 1rem 1.5rem;
+.player-table th {
     text-align: left;
+    padding: 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
     border-bottom: 1px solid #2a3b5e;
 }
 
-.player-table th {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+.player-table td {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.player-table tbody tr:hover {
-    background-color: var(--bg-secondary);
+.rankings-col-rank,
+.rankings-col-action {
+    width: 80px;
+    text-align: center !important;
+}
+
+.rankings-col-rating,
+.rankings-col-matches {
+    text-align: center !important;
+}
+
+.rankings-col-player {
+    text-align: left;
+}
+
+/* Ensure these are hidden/shown via JS without breaking layout */
+.hidden-column {
+    display: none !important;
 }
 
 /* --- Filter Container --- */
@@ -292,7 +308,7 @@ button:active {
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
-    flex-basis: 40%; /* Each player takes up 40% of the space */
+    flex-basis: 40%;
     transition: opacity 0.3s ease;
 }
 
@@ -326,13 +342,13 @@ button:active {
 }
 
 .match-h2h-summary {
-    grid-column: 1 / -1; /* Spans across all grid columns of the parent match-item */
+    grid-column: 1 / -1; 
     text-align: center;
     font-size: 0.85rem;
     color: var(--text-secondary);
-    margin-top: 0.75rem; /* Spacing from the match details above */
+    margin-top: 0.75rem; 
     padding-top: 0.75rem;
-    border-top: 1px dashed rgba(255, 255, 255, 0.1); /* Subtle separator line */
+    border-top: 1px dashed rgba(255, 255, 255, 0.1); 
     font-weight: 500;
 }
 
@@ -341,18 +357,18 @@ button:active {
 .elo-draw { background-color: var(--color-draw); }
 
 .elo-change {
-font-weight: 700;
-padding: 2px 6px;
-border-radius: 4px;
-color: #fff;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #fff;
 }
 
 /* --- H2H Table Specific Styles --- */
-.h2h-table th:nth-child(2) { /* Targets the 'SCORE' header */
+.h2h-table th:nth-child(2) { 
     text-align: center;
 }
 
-.h2h-table th:nth-child(3) { /* Targets the 'PLAYER 2' header */
+.h2h-table th:nth-child(3) { 
     text-align: right;
 }
 
@@ -371,7 +387,7 @@ color: #fff;
 /* --- View Toggle for Players/Rankings --- */
 .view-toggle-container {
     display: flex;
-    justify-content: flex-start; /* Aligns toggle to the left */
+    justify-content: flex-start;
     margin-bottom: 1.5rem;
 }
 
@@ -413,11 +429,86 @@ color: #fff;
 }
 
 .settings-buttons button {
-    flex-grow: 1; /* Make buttons fill the space */
+    flex-grow: 1; 
 }
 
 .settings-card .btn-danger {
-    width: 100%; /* Make the reset button full-width */
+    width: 100%; 
+}
+
+/* --- Edit Player Name Button --- */
+.edit-player-btn {
+    background: transparent;
+    padding: 4px 6px;
+    font-size: 0.8rem;
+    line-height: 1;
+    border-radius: 4px;
+    opacity: 0.5;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.edit-player-btn:hover {
+    background: var(--bg-secondary);
+    opacity: 1;
+    border-color: var(--accent-primary);
+    transform: scale(1.1);
+}
+
+.edit-player-btn:active {
+    transform: scale(0.9);
+}
+
+/* --- Updated Archive Button Styles --- */
+.archive-btn {
+    background-color: var(--bg-secondary);
+    border: none;
+    padding: 0.5rem 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    min-width: 70px;
+    text-align: center;
+}
+
+.archive-btn.is-visible:hover {
+    background-color: rgba(255,255,255,0.05);
+    color: var(--text-primary);
+}
+
+.archive-btn.is-archived {
+    background-color: var(--accent-primary);
+    color: white;
+    font-weight: 700;
+}
+
+.archive-btn.is-archived:hover {
+    background-color: #d83c54;
+}
+
+.archive-btn:active {
+    transform: scale(0.95);
+}
+
+/* --- Rating Cell alignment --- */
+.rating-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.winstreak {
+    position: absolute;
+    left: 100%; /* Position right after the rating number */
+    margin-left: 6px; /* Gap between rating and emoji */
+    white-space: nowrap; /* Prevent wrapping to next line */
+    font-size: 0.85rem;
+    color: #ff9800; /* Optional: gives a nice color to the fire/streak */
+    font-weight: bold;
 }
 
 /* --- Responsive Mobile Styles --- */
@@ -434,34 +525,29 @@ color: #fff;
     /* --- Responsive Tabs (Wrap to 2 rows) --- */
     .tabs {
         flex-wrap: wrap;
-        justify-content: center; /* Center the tabs for a cleaner look */
+        justify-content: center; 
     }
     .tab-link {
-        flex-grow: 1; /* Allow tabs to grow and fill space */
+        flex-grow: 1; 
         text-align: center;
     }
 
-
     /* --- Rankings Table (Compact single-row list) --- */
-    .player-table th, 
-    .player-table td {
-        padding: 0.8rem 0.5rem;
-        font-size: 0.95rem;
-        white-space: nowrap;
+    .player-table th, .player-table td {
+        padding: 0.8rem 0.4rem;
     }
 
     .rankings-col-rank, .rankings-col-player, .rankings-col-rating, .rankings-col-matches {
         width: auto;
     }
     .rankings-col-rank {
-        display: none;
+        display: none !important;
     }
-
 
     /* --- Head-to-Head Table (Adjusted for mobile) --- */
     .h2h-table th,
     .h2h-table td {
-        padding: 0.8rem 0.5rem; /* Reduced padding for smaller screens */
+        padding: 0.8rem 0.5rem; 
         font-size: 0.9rem;
     }
     .h2h-table .score-cell {
@@ -470,10 +556,10 @@ color: #fff;
 
     /* --- Match History (Adjusted for mobile) --- */
     .match-item {
-        padding: 1rem; /* Slightly reduced padding */
+        padding: 1rem; 
     }
     .player-container .player-name {
-        font-size: 1.2rem; /* Reduced font size to prevent wrapping */
+        font-size: 1.2rem; 
     }
     .match-separator {
         font-size: 1rem;
@@ -483,5 +569,10 @@ color: #fff;
     .radio-option label {
         font-size: 0.8rem;
         padding: 0.6rem;
+    }
+    .archive-btn {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        min-width: 60px;
     }
 }
