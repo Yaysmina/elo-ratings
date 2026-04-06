@@ -67,13 +67,17 @@ const handlers = {
         updateUI();
     },
 
+    // NEW: Handler for Simulation mode
+    onToggleSimulation: (e) => {
+        const isSimulating = e.target.checked;
+        state.setSimulationMode(isSimulating);
+        view.setSimulationUI(isSimulating);
+        updateUI();
+    },
+
     onFilterChange: () => {
-        // 1. Destructure archivedNames here as well
         const { rankedPlayersByRating, allPlayers, matches, archivedNames } = state.calculateStateFromHistory();
-        
-        // 2. Pass it as the 3rd argument
         view.renderPlayerTable(rankedPlayersByRating, allPlayers, archivedNames);
-        
         view.renderMatchHistory(matches);
         view.renderH2HStats(matches);
     },
@@ -87,7 +91,7 @@ const handlers = {
     },
 
     onExport: () => {
-        const data = state.getRawData();
+        const data = state.getRawData(); // Will ignore simulated data due to changes in state.js
         if (data.length === 0) {
             alert("No data to export.");
             return;
@@ -118,7 +122,7 @@ const handlers = {
             } catch (error) {
                 alert(`Error reading or parsing file: ${error.message}`);
             } finally {
-                e.target.value = null; // Reset file input
+                e.target.value = null; 
             }
         };
         reader.readAsText(file);
@@ -152,6 +156,11 @@ function initialize() {
         view.init();
         view.bindEvents(handlers);
         state.loadData();
+        
+        // MODIFIED: Ensure UI defaults to false to prevent lingering checks on page reload
+        view.setSimulationUI(false); 
+        state.setSimulationMode(false); 
+
         updateUI();
     });
 }

@@ -11,6 +11,9 @@ let currentPlayerView = 'rankings';
 /**
  * Finds and stores all necessary DOM elements.
  */
+/**
+ * Finds and stores all necessary DOM elements.
+ */
 export function init() {
     const selectors = {
         playerListBody: '#player-list-body',
@@ -32,7 +35,9 @@ export function init() {
         importButton: '#import-btn',
         importFileInput: '#import-file-input',
         actionHeader: 'th.rankings-col-action',
-        rankHeader: 'th.rankings-col-rank'
+        rankHeader: 'th.rankings-col-rank',
+        simulationToggle: '#simulation-toggle', // NEW
+        simulationBanner: '#simulation-banner'  // NEW
     };
     for (const key in selectors) {
         dom[key] = document.querySelectorAll(selectors[key]).length > 1 
@@ -52,6 +57,9 @@ export function bindEvents(handlers) {
     dom.exportButton.addEventListener('click', handlers.onExport);
     dom.importButton.addEventListener('click', () => dom.importFileInput.click());
     dom.importFileInput.addEventListener('change', handlers.onImport);
+    
+    // NEW: Bind simulation toggle handler
+    dom.simulationToggle.addEventListener('change', handlers.onToggleSimulation);
     
     dom.player1Select.addEventListener('change', updateWinnerAndOpponentDropdowns);
     dom.player2Select.addEventListener('change', updateWinnerAndOpponentDropdowns);
@@ -90,6 +98,18 @@ export function bindEvents(handlers) {
             handlers.onToggleArchive(archiveBtn.dataset.name);
         }
     });
+}
+
+/**
+ * NEW: Controls visibility of the Simulation UI components
+ */
+export function setSimulationUI(isActive) {
+    dom.simulationToggle.checked = isActive;
+    if (isActive) {
+        dom.simulationBanner.classList.remove('hidden');
+    } else {
+        dom.simulationBanner.classList.add('hidden');
+    }
 }
 
 export function renderPlayerTable(rankedPlayersSortedByRating, allPlayersSortedByMatches, archivedNames = new Set()) {

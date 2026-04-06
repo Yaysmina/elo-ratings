@@ -15,6 +15,10 @@
         <!-- Main Content Area -->
         <main class="main-content">
             <h1 class="logo">EloTracker</h1>
+            <div id="simulation-banner" class="simulation-banner hidden">
+                🧪 SIMULATION MODE ACTIVE
+            </div>
+
             <div class="tabs">
                 <button class="tab-link active" data-tab="players">Players</button>
                 <button class="tab-link" data-tab="enter-data">Enter Data</button>
@@ -48,8 +52,23 @@
             </div>
 
             <div id="enter-data" class="tab-content">
+                <!-- NEW: Simulation Mode Toggle Card -->
+                <div class="card" style="margin-bottom: 2rem; border: 1px solid #ff9800;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h2 style="margin-bottom: 0; border: none; padding: 0; color: #ff9800;">Simulation Mode</h2>
+                            <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">Test hypothetical matches without affecting real data.</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="simulation-toggle">
+                            <span class="slider round"></span>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="card">
                     <h2>Log a Match</h2>
+                    <!-- ... rest of enter-data tab content remains exactly the same ... -->
                     <form id="log-match-form">
                         <label for="player1-select">Player 1</label>
                         <select id="player1-select" required></select>
@@ -72,7 +91,6 @@
                         <label for="new-player-name">Player Name</label>
                         <input type="text" id="new-player-name" placeholder="Enter player name" required>
                         
-                        <!-- MODIFIED: Add skill level selection -->
                         <label>Starting Skill Level</label>
                         <div class="radio-group">
                             <div class="radio-option">
@@ -104,6 +122,7 @@
                 </div>
             </div>
 
+            <!-- ... existing history and h2h tabs ... -->
             <div id="history" class="tab-content">
                 <div class="filter-container card">
                     <label for="history-player-filter">Filter by Player</label>
