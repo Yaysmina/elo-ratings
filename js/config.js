@@ -10,6 +10,6 @@ export const STARTING_ELO = {
 
 export const INITIAL_RATING = STARTING_ELO.INTERMEDIATE; 
 
-export const RANKING_MIN_MATCHES = 4;
+export const RANKING_MIN_MATCHES = 5;
 
 export const ARCHIVE_STORAGE_KEY = 'elo-tracker-archives';

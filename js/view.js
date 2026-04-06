@@ -161,7 +161,6 @@ export function renderPlayerTable(rankedPlayersSortedByRating, allPlayersSortedB
                 </button>
             </td>`;
 
-        // Removed the separate rankCell <td>
         row.innerHTML = `
             <td class="rankings-col-player">
                 <div style="display: flex; align-items: center; gap: 8px;">
