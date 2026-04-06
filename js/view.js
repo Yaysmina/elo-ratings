@@ -119,7 +119,8 @@ export function renderPlayerTable(rankedPlayersSortedByRating, allPlayersSortedB
     
     // 1. Toggle Header Visibility
     if (dom.rankHeader) {
-        dom.rankHeader.classList.toggle('hidden-column', !isRankingsView);
+        // We now always hide the separate rank header since it's injected into the name
+        dom.rankHeader.classList.add('hidden-column');
     }
     if (dom.actionHeader) {
         dom.actionHeader.classList.toggle('hidden-column', isRankingsView);
@@ -148,9 +149,8 @@ export function renderPlayerTable(rankedPlayersSortedByRating, allPlayersSortedB
         const winstreakDisplay = (player.winstreak >= 2) ? `<span class="winstreak">🔥${player.winstreak}</span>` : '';
         const editBtn = !isRankingsView ? `<button class="edit-player-btn" data-name="${player.name}">✏️</button>` : '';
         
-        // Define Rank Cell
-        const rankClass = !isRankingsView ? 'hidden-column' : '';
-        const rankCell = `<td class="rankings-col-rank ${rankClass}">${index + 1}</td>`;
+        // NEW: Inject rank number directly into the display name if in rankings view
+        const displayName = isRankingsView ? `${index + 1}. ${player.name}` : player.name;
 
         // Define Action Cell
         const actionClass = isRankingsView ? 'hidden-column' : '';
@@ -161,11 +161,11 @@ export function renderPlayerTable(rankedPlayersSortedByRating, allPlayersSortedB
                 </button>
             </td>`;
 
+        // Removed the separate rankCell <td>
         row.innerHTML = `
-            ${rankCell}
             <td class="rankings-col-player">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    ${player.name}${editBtn}
+                    ${displayName}${editBtn}
                 </div>
             </td>
             <td class="rankings-col-rating">
