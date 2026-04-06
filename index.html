@@ -53,12 +53,13 @@
             </div>
 
             <div id="enter-data" class="tab-content">
-                <!-- NEW: Simulation Mode Toggle Card -->
-                <div class="card" style="margin-bottom: 2rem; border: 1px solid #ff9800;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <h2 style="margin-bottom: 0; border: none; padding: 0; color: #ff9800;">Simulation Mode</h2>
-                            <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">Test hypothetical matches without affecting real data.</p>
+                <div class="card simulation-card" style="margin-bottom: 2rem;">
+                    <div class="simulation-card-content">
+                        <div class="simulation-card-text">
+                            <h2>Simulation Mode</h2>
+                            <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                                Test hypothetical matches without affecting real data.
+                            </p>
                         </div>
                         <label class="switch">
                             <input type="checkbox" id="simulation-toggle">
@@ -69,7 +70,6 @@
 
                 <div class="card">
                     <h2>Log a Match</h2>
-                    <!-- ... rest of enter-data tab content remains exactly the same ... -->
                     <form id="log-match-form">
                         <label for="player1-select">Player 1</label>
                         <select id="player1-select" required></select>
