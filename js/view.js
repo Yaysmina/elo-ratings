@@ -17,6 +17,7 @@ let currentPlayerView = 'rankings';
 export function init() {
     const selectors = {
         playerListBody: '#player-list-body',
+        allPlayersListBody: '#all-players-list-body',
         matchHistoryList: '#match-history-list',
         h2hStatsBody: '#h2h-stats-body',
         player1Select: '#player1-select',
@@ -29,20 +30,130 @@ export function init() {
         newPlayerNameInput: '#new-player-name',
         tabs: '.tab-link',
         tabContents: '.tab-content',
+        tabIndicator: '.tab-indicator',
         viewToggleButtons: '.toggle-btn',
+        viewToggleIndicator: '.view-toggle-indicator',
+        viewTrack: '.view-track',
+        viewPanes: '.view-pane',
         resetButton: '#reset-all-btn',
         exportButton: '#export-btn',
         importButton: '#import-btn',
         importFileInput: '#import-file-input',
-        actionHeader: 'th.rankings-col-action',
-        rankHeader: 'th.rankings-col-rank',
         simulationToggle: '#simulation-toggle', // NEW
         simulationBanner: '#simulation-banner'  // NEW
     };
     for (const key in selectors) {
-        dom[key] = document.querySelectorAll(selectors[key]).length > 1 
-            ? document.querySelectorAll(selectors[key]) 
+        dom[key] = document.querySelectorAll(selectors[key]).length > 1
+            ? document.querySelectorAll(selectors[key])
             : document.querySelector(selectors[key]);
+    }
+
+    // Place the sliding highlight bar under the initially active tab (no animation on first paint)
+    updateTabIndicator(getActiveTab(), false);
+    updateViewToggleIndicator(getActiveViewToggle(), false);
+    updateViewSlide(false);
+
+    // Keep the indicators aligned when the layout changes (resize, font loading, etc.)
+    window.addEventListener('resize', () => {
+        updateTabIndicator(getActiveTab(), false);
+        updateViewToggleIndicator(getActiveViewToggle(), false);
+    });
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(() => {
+            updateTabIndicator(getActiveTab(), false);
+            updateViewToggleIndicator(getActiveViewToggle(), false);
+        });
+    }
+}
+
+/**
+ * Returns the currently active tab button.
+ * @returns {HTMLElement|null}
+ */
+function getActiveTab() {
+    const tabs = dom.tabs instanceof NodeList ? Array.from(dom.tabs) : [dom.tabs];
+    return tabs.find(tab => tab && tab.classList.contains('active')) || null;
+}
+
+/**
+ * Moves the sliding highlight bar to the given tab.
+ * @param {HTMLElement|null} tab - The tab button to highlight.
+ * @param {boolean} animate - Whether the bar should slide smoothly (false for instant repositioning).
+ */
+function updateTabIndicator(tab, animate = true) {
+    if (!dom.tabIndicator || !tab) return;
+
+    if (!animate) {
+        dom.tabIndicator.style.transition = 'none';
+    }
+    dom.tabIndicator.style.width = `${tab.offsetWidth}px`;
+    dom.tabIndicator.style.transform = `translateX(${tab.offsetLeft}px)`;
+    if (!animate) {
+        // Force a reflow so the position is applied instantly, then restore the transition
+        void dom.tabIndicator.offsetWidth;
+        dom.tabIndicator.style.transition = '';
+    }
+}
+
+/**
+ * Returns the currently active view toggle button.
+ * @returns {HTMLElement|null}
+ */
+function getActiveViewToggle() {
+    const buttons = dom.viewToggleButtons instanceof NodeList ? Array.from(dom.viewToggleButtons) : [dom.viewToggleButtons];
+    return buttons.find(button => button && button.classList.contains('active')) || null;
+}
+
+/**
+ * Moves the sliding highlight pill to the given view toggle button.
+ * @param {HTMLElement|null} button - The toggle button to highlight.
+ * @param {boolean} animate - Whether the pill should slide smoothly (false for instant repositioning).
+ */
+function updateViewToggleIndicator(button, animate = true) {
+    if (!dom.viewToggleIndicator || !button) return;
+
+    if (!animate) {
+        dom.viewToggleIndicator.style.transition = 'none';
+    }
+    dom.viewToggleIndicator.style.width = `${button.offsetWidth}px`;
+    dom.viewToggleIndicator.style.transform = `translateX(${button.offsetLeft}px)`;
+    if (!animate) {
+        // Force a reflow so the position is applied instantly, then restore the transition
+        void dom.viewToggleIndicator.offsetWidth;
+        dom.viewToggleIndicator.style.transition = '';
+    }
+}
+
+/**
+ * Slides the Rankings / All Players panes to match the current view.
+ * @param {boolean} animate - Whether the panes should slide smoothly (false for instant repositioning).
+ */
+function updateViewSlide(animate = true) {
+    if (!dom.viewTrack) return;
+
+    const isAllPlayers = currentPlayerView === 'all-players';
+
+    if (!animate) {
+        dom.viewTrack.style.transition = 'none';
+        if (dom.viewPanes) {
+            dom.viewPanes.forEach(pane => pane.style.transition = 'none');
+        }
+    }
+
+    dom.viewTrack.classList.toggle('show-all', isAllPlayers);
+    if (dom.viewPanes) {
+        dom.viewPanes.forEach(pane => {
+            pane.classList.toggle('active', pane.dataset.pane === currentPlayerView);
+        });
+    }
+
+    if (!animate) {
+        // Force a reflow so the position is applied instantly, then restore the transitions
+        void dom.viewTrack.offsetWidth;
+        dom.viewTrack.style.transition = '';
+        if (dom.viewPanes) {
+            dom.viewPanes.forEach(pane => pane.style.transition = '');
+        }
     }
 }
 
@@ -71,6 +182,7 @@ export function bindEvents(handlers) {
         tab.addEventListener('click', () => {
             dom.tabs.forEach(item => item.classList.remove('active'));
             tab.classList.add('active');
+            updateTabIndicator(tab);
             const target = document.getElementById(tab.dataset.tab);
             dom.tabContents.forEach(content => content.classList.remove('active'));
             target.classList.add('active');
@@ -82,11 +194,21 @@ export function bindEvents(handlers) {
             currentPlayerView = button.dataset.view;
             dom.viewToggleButtons.forEach(btn => btn.classList.remove('active'));
             button.classList.add('active');
+            updateViewToggleIndicator(button);
+            updateViewSlide();
             handlers.onFilterChange();
         });
     });
 
-    dom.playerListBody.addEventListener('click', (e) => {
+    dom.playerListBody.addEventListener('click', handlePlayerRowClick(handlers));
+    dom.allPlayersListBody.addEventListener('click', handlePlayerRowClick(handlers));
+}
+
+/**
+ * Builds a delegated click handler for player row action buttons.
+ */
+function handlePlayerRowClick(handlers) {
+    return (e) => {
         const renameBtn = e.target.closest('.edit-player-btn');
         if (renameBtn) {
             handlers.onRenamePlayer(renameBtn.dataset.name);
@@ -97,7 +219,7 @@ export function bindEvents(handlers) {
         if (archiveBtn) {
             handlers.onToggleArchive(archiveBtn.dataset.name);
         }
-    });
+    };
 }
 
 /**
@@ -113,49 +235,53 @@ export function setSimulationUI(isActive) {
 }
 
 export function renderPlayerTable(rankedPlayersSortedByRating, allPlayersSortedByMatches, archivedNames = new Set()) {
-    dom.playerListBody.innerHTML = '';
-    
-    const isRankingsView = currentPlayerView === 'rankings';
-    
-    // 1. Toggle Header Visibility
-    if (dom.rankHeader) {
-        // We now always hide the separate rank header since it's injected into the name
-        dom.rankHeader.classList.add('hidden-column');
-    }
-    if (dom.actionHeader) {
-        dom.actionHeader.classList.toggle('hidden-column', isRankingsView);
-        dom.actionHeader.textContent = ''; 
-    }
+    renderPlayerRows(
+        dom.playerListBody,
+        rankedPlayersSortedByRating,
+        { isRankingsView: true, archivedNames }
+    );
 
-    const playersToRender = isRankingsView 
-        ? rankedPlayersSortedByRating 
-        : allPlayersSortedByMatches;
+    renderPlayerRows(
+        dom.allPlayersListBody,
+        allPlayersSortedByMatches,
+        { isRankingsView: false, archivedNames }
+    );
+}
 
-    if (playersToRender.length === 0) {
-        const message = (allPlayersSortedByMatches.length > 0 && isRankingsView) 
-            ? 'No active players have played enough matches.' 
+/**
+ * Renders player rows into a table body.
+ * @param {HTMLElement} tbody - The table body to render into.
+ * @param {Array} players - The players to render.
+ * @param {object} options - Rendering options ({ isRankingsView, archivedNames }).
+ */
+function renderPlayerRows(tbody, players, { isRankingsView, archivedNames }) {
+    tbody.innerHTML = '';
+
+    if (players.length === 0) {
+        const message = isRankingsView
+            ? 'No active players have played enough matches.'
             : 'No players yet.';
-        dom.playerListBody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding: 2rem;">${message}</td></tr>`;
+        const colspan = isRankingsView ? 3 : 4;
+        tbody.innerHTML = `<tr><td colspan="${colspan}" style="text-align:center; padding: 2rem;">${message}</td></tr>`;
         return;
     }
 
-    playersToRender.forEach((player, index) => {
+    players.forEach((player, index) => {
         const row = document.createElement('tr');
         const isArchived = archivedNames.has(player.name);
-        
+
         if (isArchived) row.classList.add('row-archived');
 
         // Logic for winstreak and edit button
         const winstreakDisplay = (player.winstreak >= 2) ? `<span class="winstreak">🔥${player.winstreak}</span>` : '';
         const editBtn = !isRankingsView ? `<button class="edit-player-btn" data-name="${player.name}">✏️</button>` : '';
-        
-        // NEW: Inject rank number directly into the display name if in rankings view
+
+        // Inject rank number directly into the display name if in rankings view
         const displayName = isRankingsView ? `${index + 1}. ${player.name}` : player.name;
 
-        // Define Action Cell
-        const actionClass = isRankingsView ? 'hidden-column' : '';
-        const actionCell = `
-            <td class="rankings-col-action ${actionClass}">
+        // Define Action Cell (only present in the all-players view)
+        const actionCell = isRankingsView ? '' : `
+            <td class="rankings-col-action">
                 <button class="archive-btn ${isArchived ? 'is-archived' : 'is-visible'}" data-name="${player.name}">
                     ${isArchived ? 'Hidden' : 'Shown'}
                 </button>
@@ -176,7 +302,7 @@ export function renderPlayerTable(rankedPlayersSortedByRating, allPlayersSortedB
             <td class="rankings-col-matches">${player.matchesPlayed}</td>
             ${actionCell}
         `;
-        dom.playerListBody.appendChild(row);
+        tbody.appendChild(row);
     });
 }
 

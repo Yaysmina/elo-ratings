@@ -177,10 +177,11 @@ button:active {
     gap: 1rem;
     border-bottom: 1px solid #2a3b5e;
     margin-bottom: 2rem;
+    position: relative;
 }
 
 .tab-link {
-    background: none;
+    background-color: transparent;
     border: none;
     color: var(--text-secondary);
     padding: 1rem 1.5rem;
@@ -189,22 +190,19 @@ button:active {
     cursor: pointer;
     position: relative;
     transition: color 0.2s;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.tab-link:hover,
+.tab-link:focus,
+.tab-link:active,
+.tab-link:focus-visible {
+    background-color: transparent;
 }
 
 .tab-link:hover {
     color: var(--text-primary);
-}
-
-.tab-link::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    right: 0;
-    height: 3px;
-    background-color: var(--accent-primary);
-    transform: scaleX(0);
-    transition: transform 0.3s ease-in-out;
 }
 
 .tab-link.active {
@@ -212,8 +210,16 @@ button:active {
     font-weight: 700;
 }
 
-.tab-link.active::after {
-    transform: scaleX(1);
+/* Sliding highlight bar shared by all tabs */
+.tab-indicator {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    height: 3px;
+    width: 0;
+    background-color: var(--accent-primary);
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+    pointer-events: none;
 }
 
 
@@ -393,25 +399,42 @@ button:active {
 
 .view-toggle {
     display: inline-flex;
+    position: relative;
     background-color: var(--bg-secondary);
     border-radius: 8px;
     padding: 4px;
 }
 
+/* Sliding highlight pill shared by the view toggle buttons */
+.view-toggle-indicator {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 0;
+    width: 0;
+    background-color: var(--accent-primary);
+    border-radius: 6px;
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+    pointer-events: none;
+    z-index: 0;
+}
+
 .toggle-btn {
+    position: relative;
+    z-index: 1;
     background-color: transparent;
     border: none;
     padding: 0.5rem 1rem;
     color: var(--text-secondary);
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: color 0.3s ease;
     border-radius: 6px;
     font-size: 0.9rem;
 }
 
 .toggle-btn.active {
-    background-color: var(--accent-primary);
+    background-color: transparent;
     color: white;
     font-weight: 700;
 }
@@ -419,6 +442,31 @@ button:active {
 .toggle-btn:not(.active):hover {
     background-color: rgba(255,255,255,0.05);
     color: var(--text-primary);
+}
+
+/* Sliding panes for Rankings / All Players content */
+.view-slider {
+    overflow: hidden;
+}
+
+.view-track {
+    display: flex;
+    transition: transform 0.4s ease-in-out;
+    will-change: transform;
+}
+
+.view-track.show-all {
+    transform: translateX(-100%);
+}
+
+.view-pane {
+    flex: 0 0 100%;
+    width: 100%;
+    transition: opacity 0.4s ease-in-out;
+}
+
+.view-pane:not(.active) {
+    opacity: 0;
 }
 
 /* --- Settings Card Buttons --- */
@@ -636,10 +684,15 @@ input:checked + .slider:before {
     }
 
     .tab-link {
-        flex: 0 0 auto; 
+        flex: 0 0 auto;
         padding: 0.8rem 1.2rem;
         font-size: 0.95rem;
-        white-space: nowrap; 
+        white-space: nowrap;
+    }
+
+    /* Keep the indicator inside the scrollable tab strip (overflow would clip -1px) */
+    .tab-indicator {
+        bottom: 0;
     }
 
     /* Simulation Banner & Card Mobile Adjustments */

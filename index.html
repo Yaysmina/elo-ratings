@@ -20,6 +20,7 @@
             </div>
 
             <div class="tabs">
+                <div class="tab-indicator"></div>
                 <button class="tab-link active" data-tab="players">Players</button>
                 <button class="tab-link" data-tab="enter-data">Data</button>
                 <button class="tab-link" data-tab="history">History</button>
@@ -29,27 +30,50 @@
             <div id="players" class="tab-content active">
                 <div class="view-toggle-container">
                     <div class="view-toggle">
+                        <div class="view-toggle-indicator"></div>
                         <button class="toggle-btn active" data-view="rankings">Rankings</button>
                         <button class="toggle-btn" data-view="all-players">All Players</button>
                     </div>
                 </div>
-                <div class="table-container">
-                    <table class="player-table">
-                        <thead>
-                            <tr>
-                                <th class="rankings-col-player">Player</th>
-                                <th class="rankings-col-rating">Rating</th>
-                                <th class="rankings-col-matches">Matches</th>
-                                <th class="rankings-col-action"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="player-list-body">
-                            <!-- Player data injected by JS -->
-                        </tbody>
-                    </table>
+                <div class="view-slider">
+                    <div class="view-track">
+                        <div class="view-pane active" data-pane="rankings">
+                            <div class="table-container">
+                                <table class="player-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="rankings-col-player">Player</th>
+                                            <th class="rankings-col-rating">Rating</th>
+                                            <th class="rankings-col-matches">Matches</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="player-list-body">
+                                        <!-- Rankings injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <br>
+                            <i>Players become ranked after 5 matches.</i>
+                        </div>
+                        <div class="view-pane" data-pane="all-players">
+                            <div class="table-container">
+                                <table class="player-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="rankings-col-player">Player</th>
+                                            <th class="rankings-col-rating">Rating</th>
+                                            <th class="rankings-col-matches">Matches</th>
+                                            <th class="rankings-col-action"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="all-players-list-body">
+                                        <!-- All players injected by JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <br>    
-                <i>Players become ranked after 5 matches.</i>
             </div>
 
             <div id="enter-data" class="tab-content">
