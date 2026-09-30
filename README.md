@@ -34,5 +34,5 @@ Data is stored in localstorage and can be exported and imported easily.
 - Can be filtered by player
 ### CREDITS
 All testing and ideas by me.
-All code written by Gemini.
+Early code written by Gemini (AI Studio), the rest by Deepseek (ZooCode).
 Credit to my friends for being fun to play chess with.
