@@ -245,8 +245,9 @@ export function renderH2HStats(matches) {
     const selectedPlayer = dom.h2hPlayerFilter.value;
     let allStats = Object.entries(stats).map(([key, value]) => ({ players: key.split('-'), scores: value }));
     if (selectedPlayer) {
-        allStats = allStats.filter(s => s.players.includes(selectedPlayer)).sort((a, b) => b.scores.total - a.scores.total);
+        allStats = allStats.filter(s => s.players.includes(selectedPlayer));
     }
+    allStats.sort((a, b) => b.scores.total - a.scores.total);
     
     if (allStats.length === 0) {
         const message = selectedPlayer ? `No H2H stats for ${selectedPlayer}.` : 'No head-to-head matches yet.';
@@ -256,7 +257,13 @@ export function renderH2HStats(matches) {
 
     allStats.forEach(({ players, scores }) => {
         let [p1Name, p2Name] = players;
-        if (selectedPlayer && p2Name === selectedPlayer) [p1Name, p2Name] = [p2Name, p1Name];
+        if (selectedPlayer) {
+            // The filtered player always appears on the left.
+            if (p2Name === selectedPlayer) [p1Name, p2Name] = [p2Name, p1Name];
+        } else if (scores[p2Name] > scores[p1Name]) {
+            // Without a filter, put the player with more wins on the left.
+            [p1Name, p2Name] = [p2Name, p1Name];
+        }
         
         const row = document.createElement('tr');
         row.innerHTML = `
